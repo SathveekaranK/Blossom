@@ -1,0 +1,32 @@
+# Root gitignore for Blossom project
+# Node modules
+**/node_modules/
+
+# Build outputs
+**/dist/
+frontend/dist/
+
+# Environment files
+**/.env
+**/.env.*
+!/.env.example
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+**/logs/
+**/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific
+backend/src/generated/prisma
