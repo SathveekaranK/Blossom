@@ -8,20 +8,44 @@ import {
     Settings,
     ArrowLeft,
     Search,
-    Plus
+    Plus,
+    ChevronDown,
+    BarChart3
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
 
 const AdminLayout = () => {
     const location = useLocation();
+    const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const navItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
         { name: 'Products', icon: Package, path: '/admin/products' },
+        { name: 'Analysis', icon: BarChart3, path: '/admin/analysis' },
         { name: 'Categories', icon: Layers, path: '/admin/categories' },
         { name: 'Orders', icon: ShoppingCart, path: '/admin/orders' },
         { name: 'Users', icon: Users, path: '/admin/users' },
     ];
+
+    const quickActions = [
+        { name: 'Add New Product', path: '/admin/products', icon: Package },
+        { name: 'Add Category', path: '/admin/categories', icon: Layers },
+        { name: 'View Orders', path: '/admin/orders', icon: ShoppingCart },
+        { name: 'Manage Users', path: '/admin/users', icon: Users },
+    ];
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsQuickActionOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     return (
         <div className="flex min-h-screen bg-gray-50/50">
@@ -82,10 +106,36 @@ const AdminLayout = () => {
                                 className="pl-11 pr-6 py-2.5 bg-white border border-gray-100 rounded-full text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all w-64"
                             />
                         </div>
-                        <button className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-105">
-                            <Plus className="w-4 h-4" />
-                            <span>Quick Action</span>
-                        </button>
+                        <div className="relative" ref={dropdownRef}>
+                            <button
+                                onClick={() => setIsQuickActionOpen(!isQuickActionOpen)}
+                                className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-105"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Quick Action</span>
+                                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isQuickActionOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {isQuickActionOpen && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 z-50"
+                                >
+                                    {quickActions.map((action) => (
+                                        <Link
+                                            key={action.name}
+                                            to={action.path}
+                                            onClick={() => setIsQuickActionOpen(false)}
+                                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-sm font-bold text-dark transition-colors"
+                                        >
+                                            <action.icon className="w-4 h-4 text-primary" />
+                                            {action.name}
+                                        </Link>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </div>
                     </div>
                 </header>
 

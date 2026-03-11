@@ -1,14 +1,14 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCartStore } from '../store/useCartStore';
 import { useWishlistStore } from '../store/useWishlistStore';
-import { ShoppingBag, User, LogOut, Heart, Menu, X } from 'lucide-react';
+import { ShoppingBag, User, LogOut, Heart, Menu, X, Shield, Bell, Package, BellRing } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import CartDrawer from './CartDrawer.tsx';
+import api from '../api/api';
 
 const Navbar = () => {
-    const navigate = useNavigate();
     const { isAuthenticated, logout, user } = useAuthStore();
     const { items: cartItems } = useCartStore();
     const { items: wishlistItems } = useWishlistStore();
@@ -17,6 +17,13 @@ const Navbar = () => {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+    // Notification state
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
+    const [notifications, setNotifications] = useState<any[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [isSubscribed, setIsSubscribed] = useState(false);
+    const notifRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 20);
@@ -24,6 +31,55 @@ const Navbar = () => {
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    // Fetch notifications & subscription status when authenticated
+    useEffect(() => {
+        if (isAuthenticated) {
+            fetchNotifications();
+            fetchSubscriptionStatus();
+        }
+    }, [isAuthenticated]);
+
+    // Close notification dropdown on outside click
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+                setIsNotifOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const fetchNotifications = async () => {
+        try {
+            const res = await api.get('/subscriptions/notifications');
+            setNotifications(res.data.notifications);
+            setUnreadCount(res.data.unreadCount);
+        } catch (err) { /* ignore */ }
+    };
+
+    const fetchSubscriptionStatus = async () => {
+        try {
+            const res = await api.get('/subscriptions/status');
+            setIsSubscribed(res.data.isSubscribed);
+        } catch (err) { /* ignore */ }
+    };
+
+    const handleToggleSubscription = async () => {
+        try {
+            const res = await api.post('/subscriptions/toggle');
+            setIsSubscribed(res.data.isSubscribed);
+        } catch (err) { /* ignore */ }
+    };
+
+    const handleMarkAllRead = async () => {
+        try {
+            await api.put('/subscriptions/notifications/read-all');
+            setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+            setUnreadCount(0);
+        } catch (err) { /* ignore */ }
+    };
 
     const cartCount = cartItems.length;
     const wishlistCount = wishlistItems.length;
@@ -62,10 +118,110 @@ const Navbar = () => {
                             Heritage
                             <span className="absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right group-hover:origin-left" />
                         </Link>
+                        {isAuthenticated && user?.role === 'ADMIN' && (
+                            <Link to="/admin" className="hover:text-primary transition-all hover:tracking-[0.5em] duration-500 relative py-2 overflow-hidden group text-primary">
+                                Admin Dashboard
+                                <span className="absolute bottom-0 left-0 w-full h-px bg-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-500 origin-right group-hover:origin-left" />
+                            </Link>
+                        )}
                     </div>
 
                     {/* Right Actions */}
                     <div className="flex items-center gap-2 sm:gap-6">
+                        {/* Admin Link - always visible for admins */}
+                        {isAuthenticated && user?.role === 'ADMIN' && (
+                            <Link to="/admin" className="p-2.5 hover:bg-white/5 rounded-full transition-all relative group text-primary" title="Admin Dashboard">
+                                <Shield className="w-5 h-5 group-hover:scale-110 transition-transform fill-primary/10" />
+                            </Link>
+                        )}
+
+                        {/* Notification Bell - only show for authenticated users */}
+                        {isAuthenticated && (
+                            <div className="relative" ref={notifRef}>
+                                <button
+                                    onClick={() => {
+                                        setIsNotifOpen(!isNotifOpen);
+                                        if (!isNotifOpen) fetchNotifications();
+                                    }}
+                                    className="p-2.5 hover:bg-white/5 rounded-full transition-all relative group text-white/60"
+                                >
+                                    <Bell className="w-5 h-5 group-hover:text-primary group-hover:scale-110 transition-all" />
+                                    {unreadCount > 0 && (
+                                        <motion.span
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1 }}
+                                            className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center font-black ring-2 ring-dark"
+                                        >
+                                            {unreadCount}
+                                        </motion.span>
+                                    )}
+                                </button>
+
+                                {isNotifOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 z-[110] overflow-hidden"
+                                    >
+                                        <div className="p-4 border-b border-gray-50 flex items-center justify-between">
+                                            <span className="text-sm font-black text-dark">Notifications</span>
+                                            <div className="flex items-center gap-2">
+                                                {unreadCount > 0 && (
+                                                    <button onClick={handleMarkAllRead} className="text-[10px] font-bold text-primary hover:underline">Mark all read</button>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        {/* Subscribe toggle */}
+                                        <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
+                                            <div className="flex items-center gap-2">
+                                                <BellRing className="w-4 h-4 text-primary" />
+                                                <span className="text-xs font-bold text-dark">Product Alerts</span>
+                                            </div>
+                                            <button
+                                                onClick={handleToggleSubscription}
+                                                className={`relative w-11 h-6 rounded-full transition-colors ${isSubscribed ? 'bg-primary' : 'bg-gray-200'}`}
+                                            >
+                                                <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform ${isSubscribed ? 'translate-x-5' : 'translate-x-0'}`} />
+                                            </button>
+                                        </div>
+
+                                        <div className="max-h-80 overflow-y-auto">
+                                            {notifications.length === 0 ? (
+                                                <div className="p-8 text-center">
+                                                    <Bell className="w-8 h-8 text-gray-200 mx-auto mb-3" />
+                                                    <p className="text-xs font-bold text-gray-300 uppercase tracking-widest">No notifications</p>
+                                                    {!isSubscribed && (
+                                                        <p className="text-[10px] text-gray-400 mt-2">Subscribe to get notified about new products!</p>
+                                                    )}
+                                                </div>
+                                            ) : (
+                                                notifications.slice(0, 10).map((notif) => (
+                                                    <div key={notif.id} className={`p-4 border-b border-gray-50 hover:bg-gray-50/50 transition-colors ${!notif.isRead ? 'bg-primary/5' : ''}`}>
+                                                        <div className="flex items-start gap-3">
+                                                            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                                                <Package className="w-4 h-4 text-primary" />
+                                                            </div>
+                                                            <div className="flex flex-col gap-1 flex-1">
+                                                                <span className="text-xs font-bold text-dark">{notif.title}</span>
+                                                                <span className="text-[10px] text-gray-400 leading-relaxed">{notif.message}</span>
+                                                                <span className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mt-1">
+                                                                    {new Date(notif.createdAt).toLocaleDateString()}
+                                                                </span>
+                                                            </div>
+                                                            {!notif.isRead && (
+                                                                <div className="w-2 h-2 bg-primary rounded-full flex-shrink-0 mt-1.5" />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+                        )}
+
                         <Link to="/wishlist" className="p-2.5 hover:bg-white/5 rounded-full transition-all relative group text-white/60">
                             <Heart className="w-5 h-5 group-hover:fill-primary group-hover:text-primary transition-all group-hover:scale-110" />
                             {wishlistCount > 0 && (
@@ -106,9 +262,17 @@ const Navbar = () => {
                                             <span className="text-xs font-bold text-white leading-none tracking-tight">Account & Lists</span>
                                         </div>
 
-                                        {/* Simple Dropdown for Logout */}
-                                        <div className="absolute top-full right-0 mt-2 w-48 bg-white rounded-xl shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110] p-2">
-                                            <Link to={user?.role === 'ADMIN' ? '/admin' : '/profile'} className="block w-full text-left p-3 hover:bg-gray-50 rounded-lg text-xs font-bold text-dark">Dashboard</Link>
+                                        {/* Dropdown */}
+                                        <div className="absolute top-full right-0 mt-2 w-52 bg-white rounded-xl shadow-2xl border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[110] p-2">
+                                            {user?.role === 'ADMIN' && (
+                                                <Link to="/admin" className="block w-full text-left p-3 hover:bg-gray-50 rounded-lg text-xs font-bold text-dark flex items-center gap-2">
+                                                    <Shield className="w-4 h-4 text-primary" /> Admin Dashboard
+                                                </Link>
+                                            )}
+                                            <Link to="/my-orders" className="block w-full text-left p-3 hover:bg-gray-50 rounded-lg text-xs font-bold text-dark flex items-center gap-2">
+                                                <Package className="w-4 h-4 text-gray-400" /> My Orders
+                                            </Link>
+                                            <div className="border-t border-gray-100 my-1" />
                                             <button
                                                 onClick={logout}
                                                 className="w-full text-left p-3 hover:bg-red-50 rounded-lg text-xs font-bold text-red-500 flex items-center gap-3"
@@ -139,7 +303,7 @@ const Navbar = () => {
                 </div>
 
             </nav>
-            {/* Mobile Menu Overlay - Outside nav for absolute layering */}
+            {/* Mobile Menu Overlay */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
                     <motion.div
@@ -157,8 +321,16 @@ const Navbar = () => {
                             <Link to="/shop" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary transition-colors">Collection</Link>
                             <Link to="/about" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary transition-colors">Heritage</Link>
                             <Link to="/wishlist" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary transition-colors">Wishlist</Link>
+                            {isAuthenticated && (
+                                <Link to="/my-orders" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary transition-colors">My Orders</Link>
+                            )}
                         </div>
                         <div className="mt-auto border-t border-white/10 pt-10">
+                            {isAuthenticated && user?.role === 'ADMIN' && (
+                                <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-white/60 hover:text-primary font-black uppercase tracking-widest text-xl mb-6">
+                                    <Shield className="w-6 h-6" /> Admin Dashboard
+                                </Link>
+                            )}
                             {isAuthenticated ? (
                                 <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="text-red-400 font-black uppercase tracking-widest flex items-center gap-3 text-xl">
                                     <LogOut className="w-6 h-6" /> Sign Out
