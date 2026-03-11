@@ -12,7 +12,9 @@ import {
     Tag,
     DollarSign,
     Layers,
-    Archive
+    Archive,
+    ToggleLeft,
+    ToggleRight
 } from 'lucide-react';
 import api from '../../api/api';
 
@@ -29,6 +31,7 @@ interface Product {
     stock: number;
     slug: string;
     imageUrl?: string;
+    isActive: boolean;
     categoryId: string;
     category?: Category;
 }
@@ -60,7 +63,7 @@ const ProductsAdmin = () => {
     const fetchData = async () => {
         try {
             const [productsRes, categoriesRes] = await Promise.all([
-                api.get('/products?limit=100'),
+                api.get('/products?limit=100&showInactive=true'),
                 api.get('/categories')
             ]);
             setProducts(productsRes.data.products);
@@ -129,6 +132,15 @@ const ProductsAdmin = () => {
         }
     };
 
+    const handleToggleActive = async (id: string) => {
+        try {
+            await api.patch(`/products/${id}/toggle-active`);
+            fetchData();
+        } catch (err) {
+            alert('Failed to toggle product status');
+        }
+    };
+
     return (
         <div className="flex flex-col gap-8">
             <div className="flex items-center justify-between">
@@ -168,19 +180,20 @@ const ProductsAdmin = () => {
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Category</th>
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Price</th>
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Stock</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Status</th>
                                 <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={5} className="px-8 py-20 text-center">
+                                    <td colSpan={6} className="px-8 py-20 text-center">
                                         <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
                                     </td>
                                 </tr>
                             ) : products.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-8 py-20 text-center">
+                                    <td colSpan={6} className="px-8 py-20 text-center">
                                         <p className="text-gray-300 font-bold uppercase tracking-widest text-xs">No products found.</p>
                                     </td>
                                 </tr>
@@ -220,6 +233,15 @@ const ProductsAdmin = () => {
                                                 }`}>
                                                 {prod.stock} in stock
                                             </div>
+                                        </td>
+                                        <td className="px-8 py-5">
+                                            <button
+                                                onClick={() => handleToggleActive(prod.id)}
+                                                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit transition-all ${prod.isActive ? 'bg-secondary/10 text-secondary' : 'bg-red-50 text-red-400'}`}
+                                            >
+                                                {prod.isActive ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
+                                                {prod.isActive ? 'Active' : 'Inactive'}
+                                            </button>
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

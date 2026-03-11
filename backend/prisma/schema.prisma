@@ -8,15 +8,17 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  name      String
-  role      String   @default("CUSTOMER") // Using String instead of Enum for SQLite
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  cart      Cart?
-  orders    Order[]
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  name          String
+  role          String         @default("CUSTOMER")
+  isSubscribed  Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  cart          Cart?
+  orders        Order[]
+  notifications Notification[]
 }
 
 model Category {
@@ -29,19 +31,20 @@ model Category {
 }
 
 model Product {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   name        String
   description String
-  price       Float    @default(0.0)
-  stock       Int      @default(0)
-  slug        String   @unique
+  price       Float       @default(0.0)
+  stock       Int         @default(0)
+  slug        String      @unique
   imageUrl    String?
-  category    Category @relation(fields: [categoryId], references: [id])
+  isActive    Boolean     @default(true)
+  category    Category    @relation(fields: [categoryId], references: [id])
   categoryId  String
   cartItems   CartItem[]
   orderItems  OrderItem[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 }
 
 model Cart {
@@ -69,7 +72,8 @@ model Order {
   user            User        @relation(fields: [userId], references: [id])
   userId          String
   totalAmount     Float
-  status          String      @default("PENDING") // Using String instead of Enum for SQLite
+  status          String      @default("PENDING")
+  shippingAddress String?
   paymentIntentId String?     @unique
   items           OrderItem[]
   createdAt       DateTime    @default(now())
@@ -86,4 +90,16 @@ model OrderItem {
   price     Float
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  title     String
+  message   String
+  type      String   @default("PRODUCT_NEW")
+  isRead    Boolean  @default(false)
+  productId String?
+  createdAt DateTime @default(now())
 }

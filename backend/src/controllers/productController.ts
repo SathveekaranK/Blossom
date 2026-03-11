@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../index.js';
 import { z } from 'zod';
+import { notifySubscribers } from './subscriptionController.js';
 
 const productSchema = z.object({
     name: z.string().min(2),
@@ -10,16 +11,19 @@ const productSchema = z.object({
     slug: z.string().min(2),
     categoryId: z.string().uuid(),
     imageUrl: z.string().url().optional(),
+    isActive: z.boolean().optional(),
 });
 
 export const getProducts = async (req: Request, res: Response) => {
     try {
-        const { category, search, sort, limit = 10, page = 1 } = req.query;
+        const { category, search, sort, limit = 10, page = 1, showInactive } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
 
         const where: any = {};
         if (category) where.category = { slug: String(category) };
         if (search) where.name = { contains: String(search) };
+        // Only show active products to customers — admin can see all
+        if (showInactive !== 'true') where.isActive = true;
 
         const orderBy: any = {};
         if (sort === 'price_asc') orderBy.price = 'asc';
@@ -44,7 +48,7 @@ export const getProducts = async (req: Request, res: Response) => {
 
 export const getProductBySlug = async (req: Request, res: Response) => {
     try {
-        const { slug } = req.params;
+        const slug = req.params.slug as string;
         const product = await prisma.product.findUnique({
             where: { slug },
             include: { category: true },
@@ -60,8 +64,19 @@ export const createProduct = async (req: Request, res: Response) => {
     try {
         const validatedData = productSchema.parse(req.body);
         const product = await prisma.product.create({
-            data: validatedData,
+            data: {
+                ...validatedData,
+                imageUrl: validatedData.imageUrl ?? null,
+            },
         });
+
+        // Notify all subscribers about the new product
+        await notifySubscribers({
+            id: product.id,
+            name: product.name,
+            price: product.price,
+        });
+
         res.status(201).json(product);
     } catch (error) {
         if (error instanceof z.ZodError) {
@@ -73,11 +88,14 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id as string;
         const validatedData = productSchema.parse(req.body);
         const product = await prisma.product.update({
             where: { id },
-            data: validatedData,
+            data: {
+                ...validatedData,
+                imageUrl: validatedData.imageUrl ?? null,
+            },
         });
         res.json(product);
     } catch (error) {
@@ -90,10 +108,27 @@ export const updateProduct = async (req: Request, res: Response) => {
 
 export const deleteProduct = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = req.params.id as string;
         await prisma.product.delete({ where: { id } });
         res.status(204).send();
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete product' });
+    }
+};
+
+// Toggle product visibility
+export const toggleProductActive = async (req: Request, res: Response) => {
+    try {
+        const id = req.params.id as string;
+        const product = await prisma.product.findUnique({ where: { id } });
+        if (!product) return res.status(404).json({ error: 'Product not found' });
+
+        const updated = await prisma.product.update({
+            where: { id },
+            data: { isActive: !product.isActive },
+        });
+        res.json(updated);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to toggle product status' });
     }
 };
