@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 
 export const getAllUsers = async (req: Request, res: Response) => {
     try {
@@ -9,6 +9,7 @@ export const getAllUsers = async (req: Request, res: Response) => {
                 email: true,
                 name: true,
                 role: true,
+                phone: true,
                 isSubscribed: true,
                 createdAt: true,
                 _count: { select: { orders: true } },
@@ -31,6 +32,7 @@ export const getUserById = async (req: Request, res: Response) => {
                 email: true,
                 name: true,
                 role: true,
+                phone: true,
                 isSubscribed: true,
                 createdAt: true,
                 orders: {

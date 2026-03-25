@@ -1,4 +1,4 @@
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 import Stripe from 'stripe';
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
     apiVersion: '2025-04-30.basil',
@@ -33,10 +33,41 @@ export const updateOrderStatus = async (req, res) => {
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
+        // Fetch the order to get the userId and current status
+        const currentOrder = await prisma.order.findUnique({
+            where: { id },
+            include: { user: { select: { id: true, name: true } } }
+        });
+        if (!currentOrder) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
         const order = await prisma.order.update({
             where: { id },
             data: { status },
         });
+        // Notify the user
+        await prisma.notification.create({
+            data: {
+                userId: currentOrder.userId,
+                title: `Order #${id.slice(0, 8)} ${status}`,
+                message: `Your order status has been updated to ${status}.`,
+                type: 'ORDER_STATUS',
+            }
+        });
+        // Special notification for Admin if DELIVERED or requested
+        // Since the requirement says "message send to the admin and the user"
+        // We find an admin user to notify
+        const adminUser = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+        if (adminUser) {
+            await prisma.notification.create({
+                data: {
+                    userId: adminUser.id,
+                    title: `Order Delivered: #${id.slice(0, 8)}`,
+                    message: `Order #${id.slice(0, 8)} for ${currentOrder.user.name} has been marked as ${status}.`,
+                    type: 'ADMIN_ALERT',
+                }
+            });
+        }
         res.json(order);
     }
     catch (error) {
@@ -83,6 +114,12 @@ export const getOrderById = async (req, res) => {
 };
 // Customer: Create order and Stripe checkout session
 export const createCheckoutSession = async (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            message: 'Authentication required before checkout',
+        });
+    }
     try {
         const userId = req.user.userId;
         const { items, shippingAddress } = req.body;

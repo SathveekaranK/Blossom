@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 
 // Subscribe / Unsubscribe current user
 export const toggleSubscription = async (req: any, res: Response) => {
@@ -97,7 +97,7 @@ export const notifySubscribers = async (product: { id: string; name: string; pri
         const notificationData = subscribers.map((sub) => ({
             userId: sub.id,
             title: '✨ New Product Added!',
-            message: `${product.name} is now available for $${product.price.toFixed(2)}. Check it out!`,
+            message: `${product.name} is now available for ₹${product.price.toLocaleString('en-IN')}. Check it out!`,
             type: 'PRODUCT_NEW',
             productId: product.id,
         }));

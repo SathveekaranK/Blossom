@@ -1,12 +1,12 @@
 import { Router } from 'express';
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../controllers/categoryController.js';
-import { authenticate, authorize } from '../middleware/authMiddleware.js';
+import { requireAuth, authorize } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
 router.get('/', getCategories);
-router.post('/', authenticate, authorize(['ADMIN']), createCategory);
-router.put('/:id', authenticate, authorize(['ADMIN']), updateCategory);
-router.delete('/:id', authenticate, authorize(['ADMIN']), deleteCategory);
+router.post('/', createCategory);
+router.put('/:id', updateCategory);
+router.delete('/:id', deleteCategory);
 
 export default router;

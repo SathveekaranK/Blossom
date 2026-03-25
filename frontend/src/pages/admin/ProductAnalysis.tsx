@@ -35,8 +35,8 @@ const ProductAnalysis = () => {
                     api.get('/products'),
                     api.get('/orders')
                 ]);
-                setProducts(productsRes.data);
-                setOrders(ordersRes.data);
+                setProducts(productsRes.data.products || []);
+                setOrders(ordersRes.data || []);
             } catch (err) {
                 console.error('Failed to fetch analysis data');
             } finally {
@@ -89,6 +89,7 @@ const ProductAnalysis = () => {
     const categoryData = Object.entries(categoryCount).map(([name, count]) => ({ name, count }));
     const maxCat = Math.max(...categoryData.map(c => c.count), 1);
     const maxTop = Math.max(...topSelling.map(s => s.quantity), 1);
+    const totalRevenue = orders.filter(o => o.status !== 'CANCELLED').reduce((acc, curr) => acc + curr.totalAmount, 0);
 
     return (
         <div className="flex flex-col gap-8">
@@ -100,7 +101,7 @@ const ProductAnalysis = () => {
             </div>
 
             {/* Overview Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="p-6 bg-white border border-gray-100 rounded-3xl shadow-sm flex items-center gap-5">
                     <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
                         <Package className="w-6 h-6" />
@@ -110,7 +111,17 @@ const ProductAnalysis = () => {
                         <h3 className="text-3xl font-black text-dark tracking-tight">{products.length}</h3>
                     </div>
                 </motion.div>
+                {/* New Total Revenue Card */}
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="p-6 bg-white border border-gray-100 rounded-3xl shadow-sm flex items-center gap-5">
+                    <div className="w-14 h-14 bg-green-50 rounded-2xl flex items-center justify-center text-green-500">
+                        <TrendingUp className="w-6 h-6" />
+                    </div>
+                    <div>
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Total Revenue</p>
+                        <span className="text-3xl font-black text-dark tracking-tight">₹{totalRevenue.toLocaleString()}</span>
+                    </div>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="p-6 bg-white border border-gray-100 rounded-3xl shadow-sm flex items-center gap-5">
                     <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-500">
                         <TrendingUp className="w-6 h-6" />
                     </div>

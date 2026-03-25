@@ -94,14 +94,18 @@ const Navbar = () => {
             >
                 <div className="flex items-center justify-between gap-6 max-w-[1600px] mx-auto w-full">
                     {/* Brand Logo */}
-                    <Link to="/" className="flex items-center gap-3 group shrink-0">
+                    <Link to="/" className="flex items-center gap-4 group shrink-0">
                         <motion.div
-                            whileHover={{ scale: 1.1, rotate: 10 }}
-                            className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center text-dark shadow-lg shadow-primary/20 transition-all duration-500"
+                            whileHover={{ scale: 1.05, rotate: 5 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white flex items-center justify-center shadow-2xl shadow-black/20 transition-all duration-500 overflow-hidden border border-white/10 ring-1 ring-white/5"
                         >
-                            <span className="font-serif italic text-xl md:text-2xl font-black">B</span>
+                            <img src="/izza_image.jpeg" alt="Logo" className="w-full h-full object-cover" />
                         </motion.div>
-                        <span className="hidden sm:block text-xl md:text-2xl font-black tracking-tighter text-white group-hover:text-primary transition-colors">Blossom.</span>
+                        <div className="hidden sm:flex flex-col">
+                            <span className="text-xl md:text-2xl font-black tracking-[0.2em] text-white group-hover:text-primary transition-all duration-500 uppercase leading-none">IZZA</span>
+                            <span className="text-[10px] font-black tracking-[0.4em] text-white/30 uppercase mt-1 transition-colors group-hover:text-primary/50 leading-none">Collection</span>
+                        </div>
                     </Link>
 
                     {/* Navigation Links */}
@@ -283,12 +287,17 @@ const Navbar = () => {
                                     </div>
                                 </motion.div>
                             ) : (
-                                <Link
+                                <Link 
                                     to="/login"
-                                    className="inline-flex items-center gap-2 px-3 md:px-4 py-2 rounded-full bg-white/5 text-white text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-dark transition-all duration-700 border border-white/10 shrink-0"
+                                    className="flex items-center gap-3 p-1 rounded-full hover:bg-white/5 transition-all group lg:pr-4 cursor-pointer"
                                 >
-                                    <User className="w-3.5 h-3.5" />
-                                    <span>Sign In</span>
+                                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/40 group-hover:bg-primary group-hover:text-dark transition-all duration-500">
+                                        <User className="w-4 h-4" />
+                                    </div>
+                                    <div className="hidden lg:flex flex-col text-left">
+                                        <span className="text-[8px] font-black uppercase tracking-widest text-white/20 leading-none mb-0.5">Guest</span>
+                                        <span className="text-xs font-bold text-white leading-none tracking-tight">Sign In</span>
+                                    </div>
                                 </Link>
                             )}
                         </AnimatePresence>
@@ -331,12 +340,10 @@ const Navbar = () => {
                                     <Shield className="w-6 h-6" /> Admin Dashboard
                                 </Link>
                             )}
-                            {isAuthenticated ? (
+                            {isAuthenticated && (
                                 <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="text-red-400 font-black uppercase tracking-widest flex items-center gap-3 text-xl">
                                     <LogOut className="w-6 h-6" /> Sign Out
                                 </button>
-                            ) : (
-                                <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-primary font-black uppercase tracking-widest text-xl">Sign In</Link>
                             )}
                         </div>
                     </motion.div>

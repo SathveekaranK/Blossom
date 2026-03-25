@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 import { z } from 'zod';
 const registerSchema = z.object({
     email: z.string().email(),
@@ -10,6 +10,11 @@ const registerSchema = z.object({
 const loginSchema = z.object({
     email: z.string().email(),
     password: z.string(),
+});
+const checkoutLoginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(6),
+    name: z.string().min(2),
 });
 export const register = async (req, res) => {
     try {
@@ -66,6 +71,48 @@ export const login = async (req, res) => {
         });
         res.status(200).json({
             message: 'Login successful',
+            user: { id: user.id, email: user.email, name: user.name, role: user.role },
+            token,
+        });
+    }
+    catch (error) {
+        if (error instanceof z.ZodError) {
+            return res.status(400).json({ error: error.issues });
+        }
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+export const checkoutLogin = async (req, res) => {
+    try {
+        const { email, password, name } = checkoutLoginSchema.parse(req.body);
+        let user = await prisma.user.findUnique({ where: { email } });
+        if (user) {
+            // User exists, verify password
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                return res.status(401).json({ error: 'Incorrect password for this email address.' });
+            }
+        }
+        else {
+            // User doesn't exist, create account
+            const hashedPassword = await bcrypt.hash(password, 10);
+            user = await prisma.user.create({
+                data: {
+                    email,
+                    password: hashedPassword,
+                    name,
+                },
+            });
+        }
+        const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET || 'fallback_secret', { expiresIn: '7d' });
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+        res.status(200).json({
+            message: 'Authentication successful',
             user: { id: user.id, email: user.email, name: user.name, role: user.role },
             token,
         });

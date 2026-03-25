@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Instagram, Twitter, Facebook, MapPin, Phone, Mail } from 'lucide-react';
+import { Instagram, MapPin, Phone, Mail } from 'lucide-react';
 
 const Footer = () => {
     return (
@@ -10,15 +9,19 @@ const Footer = () => {
             <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[120px] translate-y-1/4 -translate-x-1/4" />
 
             <div className="container mx-auto px-6 lg:px-12 relative z-10">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 lg:gap-24 mb-24">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 lg:gap-16 mb-24">
                     {/* Brand Section */}
                     <div className="lg:col-span-5 flex flex-col gap-10">
                         <Link to="/" className="flex items-center gap-4 group">
-                            <div className="w-12 h-12 rounded-2xl bg-primary flex items-center justify-center text-dark shadow-2xl transition-transform duration-500 group-hover:rotate-12 group-hover:scale-110">
-                                <span className="font-serif italic text-2xl font-black">B</span>
+                            <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-white flex items-center justify-center shadow-2xl shadow-black/20 transition-all duration-500 overflow-hidden border border-white/10 ring-1 ring-white/5">
+                                <img src="/izza_image.jpeg" alt="Logo" className="w-full h-full object-cover" />
                             </div>
-                            <span className="text-3xl font-black tracking-tighter hover:text-primary transition-colors">Blossom.</span>
+                            <div className="flex flex-col">
+                                <span className="text-xl md:text-2xl font-black tracking-[0.2em] text-white group-hover:text-primary transition-all duration-500 uppercase leading-none">IZZA</span>
+                                <span className="text-[10px] font-black tracking-[0.4em] text-white/30 uppercase mt-1 transition-colors group-hover:text-primary/50 leading-none">Collection</span>
+                            </div>
                         </Link>
+                       
 
                         <p className="text-xl text-white/40 font-serif italic max-w-md leading-relaxed">
                             Crafting the purest botanical rituals for the conscious soul.
@@ -26,16 +29,19 @@ const Footer = () => {
                         </p>
 
                         <div className="flex items-center gap-6">
-                            {[Instagram, Twitter, Facebook].map((Icon, i) => (
+                            {[Instagram].map((Icon, i) => (
                                 <Link
                                     key={i}
-                                    to="#"
+                                    to="https://www.instagram.com/reels/DJbdZo9z1mh/"
                                     className="w-12 h-12 rounded-full border border-white/10 flex items-center justify-center hover:bg-primary hover:border-primary hover:text-dark transition-all duration-500 group"
                                 >
                                     <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
                                 </Link>
+                                
                             ))}
+                             <a href="https://www.instagram.com/reels/DJbdZo9z1mh/">izza collection</a>
                         </div>
+                       
                     </div>
 
                     {/* Navigation Quick Links */}
@@ -85,8 +91,8 @@ const Footer = () => {
                         <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">Concierge</h4>
                         <div className="flex flex-col gap-6">
                             {[
-                                { icon: MapPin, text: 'Rue Faubourg, Paris' },
-                                { icon: Phone, text: '+33 1 23 45 67 89' },
+                                { icon: MapPin, text: 'Global Headquarters' },
+                                { icon: Phone, text: 'Contact via Support' },
                                 { icon: Mail, text: 'essence@blossom.com' }
                             ].map((item, i) => (
                                 <div key={i} className="flex items-center gap-4 group">
@@ -103,7 +109,7 @@ const Footer = () => {
                 {/* Bottom Bar */}
                 <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8">
                     <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">
-                        © 2026 Blossom Laboratory. All Rights Reserved.
+                        © {new Date().getFullYear()} Blossom Laboratory. All Rights Reserved.
                     </span>
                     <div className="flex items-center gap-8 text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">
                         <Link to="#" className="hover:text-white transition-colors">Privacy Policy</Link>

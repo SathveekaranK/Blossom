@@ -1,4 +1,6 @@
 import type { Response, NextFunction } from 'express';
+export declare const optionalAuth: (req: any, res: Response, next: NextFunction) => void;
+export declare const requireAuth: (req: any, res: Response, next: NextFunction) => Response<any, Record<string, any>> | undefined;
 export declare const authenticate: (req: any, res: Response, next: NextFunction) => Response<any, Record<string, any>> | undefined;
 export declare const authorize: (roles: string[]) => (req: any, res: Response, next: NextFunction) => Response<any, Record<string, any>> | undefined;
 //# sourceMappingURL=authMiddleware.d.ts.map

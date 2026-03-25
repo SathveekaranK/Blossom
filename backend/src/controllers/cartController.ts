@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 
 // Get the logged-in user's cart
 export const getCart = async (req: any, res: Response) => {
@@ -181,6 +181,21 @@ export const removeCartItem = async (req: any, res: Response) => {
         res.status(204).send();
     } catch (error) {
         res.status(500).json({ error: 'Failed to remove cart item' });
+    }
+};
+
+// Remove item from cart by product ID
+export const removeCartItemByProductId = async (req: any, res: Response) => {
+    try {
+        const userId = req.user.userId;
+        const { productId } = req.params;
+        const cart = await prisma.cart.findUnique({ where: { userId } });
+        if (cart) {
+            await prisma.cartItem.deleteMany({ where: { cartId: cart.id, productId } });
+        }
+        res.status(204).send();
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to remove product from cart' });
     }
 };
 

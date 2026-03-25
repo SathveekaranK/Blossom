@@ -8,13 +8,13 @@ import {
     Clock,
     CheckCircle2,
     Truck,
-    XCircle,
-    CreditCard,
     ArrowLeft,
     ChevronDown,
     ChevronUp
 } from 'lucide-react';
 import api from '../api/api';
+
+import { resolveImageUrl } from '../utils/imageUtils';
 
 interface OrderItem {
     id: string;
@@ -32,16 +32,26 @@ interface Order {
     totalAmount: number;
     status: string;
     shippingAddress?: string;
+    houseNo?: string;
+    street?: string;
+    landmark?: string;
+    area?: string;
+    district?: string;
+    state?: string;
+    country?: string;
+    pincode?: string;
     createdAt: string;
     items: OrderItem[];
+    user: {
+        name: string;
+        email: string;
+    };
 }
 
 const statusConfig: Record<string, { color: string; icon: any; label: string }> = {
-    PENDING: { color: 'bg-amber-50 text-amber-600 border-amber-100', icon: Clock, label: 'Pending' },
-    PAID: { color: 'bg-blue-50 text-blue-600 border-blue-100', icon: CreditCard, label: 'Paid' },
-    SHIPPED: { color: 'bg-primary/10 text-primary border-primary/20', icon: Truck, label: 'Shipped' },
-    DELIVERED: { color: 'bg-secondary/10 text-secondary border-secondary/20', icon: CheckCircle2, label: 'Delivered' },
-    CANCELLED: { color: 'bg-red-50 text-red-500 border-red-100', icon: XCircle, label: 'Cancelled' },
+    ORDER: { color: 'bg-amber-50 text-amber-600 border-amber-100', icon: Clock, label: 'Order' },
+    SHIPPED: { color: 'bg-blue-50 text-blue-600 border-blue-100', icon: Truck, label: 'Shipped' },
+    DELIVERED: { color: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: CheckCircle2, label: 'Delivered' },
 };
 
 const MyOrders = () => {
@@ -129,8 +139,14 @@ const MyOrders = () => {
                                         className="w-full p-8 flex items-center justify-between text-left"
                                     >
                                         <div className="flex items-center gap-6">
-                                            <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center">
-                                                <Package className="w-6 h-6 text-dark/20" />
+                                            <div className="w-14 h-14 rounded-2xl bg-gray-50 overflow-hidden flex-shrink-0 group-hover:scale-95 transition-transform duration-500">
+                                                {order.items[0]?.product.imageUrl ? (
+                                                    <img src={resolveImageUrl(order.items[0].product.imageUrl)} alt={order.items[0].product.name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center">
+                                                        <Package className="w-6 h-6 text-dark/20" />
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex flex-col gap-1">
                                                 <div className="flex items-center gap-3">
@@ -140,15 +156,24 @@ const MyOrders = () => {
                                                         {statusInfo.label}
                                                     </div>
                                                 </div>
-                                                <span className="text-xs text-gray-400 font-medium">
-                                                    {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
-                                                    {' • '}
-                                                    {order.items.length} item{order.items.length !== 1 ? 's' : ''}
-                                                </span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-black text-dark uppercase tracking-wider line-clamp-1 max-w-[200px]">
+                                                        {order.items[0]?.product.name || 'Order'}
+                                                        {order.items.length > 1 && (
+                                                            <span className="text-primary ml-1">
+                                                                + {order.items.length - 1} more
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    <span className="text-[10px] text-gray-300">•</span>
+                                                    <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                                        {new Date(order.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-6">
-                                            <span className="text-xl font-black text-dark tracking-tight">${Number(order.totalAmount).toFixed(2)}</span>
+                                            <span className="text-xl font-black text-dark tracking-tighter">₹{Number(order.totalAmount).toFixed(2)}</span>
                                             {isExpanded ? <ChevronUp className="w-5 h-5 text-gray-300" /> : <ChevronDown className="w-5 h-5 text-gray-300" />}
                                         </div>
                                     </button>
@@ -159,34 +184,109 @@ const MyOrders = () => {
                                             animate={{ height: 'auto', opacity: 1 }}
                                             className="border-t border-gray-50 px-8 pb-8"
                                         >
-                                            <div className="flex flex-col gap-4 pt-6">
-                                                {order.items.map((item) => (
-                                                    <div key={item.id} className="flex items-center gap-5 p-4 bg-gray-50/50 rounded-2xl">
-                                                        <div className="w-16 h-20 rounded-xl bg-white overflow-hidden shadow-sm flex-shrink-0">
-                                                            {item.product.imageUrl ? (
-                                                                <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <div className="w-full h-full flex items-center justify-center text-gray-200">
-                                                                    <Package className="w-6 h-6" />
-                                                                </div>
-                                                            )}
+                                            <div className="flex flex-col pt-8 bg-white border border-gray-100 rounded-[40px] shadow-sm overflow-hidden mt-6 mb-4">
+                                                {/* Header within expansion to match modal */}
+                                                <div className="px-10 py-8 border-b border-gray-50 flex items-center justify-between">
+                                                    <div className="flex flex-col gap-1">
+                                                        <div className="flex items-center gap-3">
+                                                            <h3 className="text-2xl font-black text-dark tracking-tight">Order #{order.id.slice(-8).toUpperCase()}</h3>
+                                                            <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${statusInfo.color}`}>
+                                                                {statusInfo.label}
+                                                            </div>
                                                         </div>
-                                                        <div className="flex flex-col flex-1">
-                                                            <Link to={`/products/${item.product.slug}`} className="text-sm font-bold text-dark hover:text-primary transition-colors">
-                                                                {item.product.name}
-                                                            </Link>
-                                                            <span className="text-[10px] font-bold text-gray-400 capitalize">Qty: {item.quantity}</span>
-                                                        </div>
-                                                        <span className="text-sm font-black text-dark">${(item.price * item.quantity).toFixed(2)}</span>
+                                                        <p className="text-gray-400 font-semibold text-xs uppercase tracking-widest">Detailed Transaction Log</p>
                                                     </div>
-                                                ))}
-                                            </div>
-                                            {order.shippingAddress && (
-                                                <div className="mt-4 p-4 bg-primary/5 rounded-2xl">
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">Shipping Address</span>
-                                                    <p className="text-sm font-medium text-dark mt-1">{order.shippingAddress}</p>
                                                 </div>
-                                            )}
+
+                                                <div className="p-10">
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+                                                        {/* Info Side */}
+                                                        <div className="flex flex-col gap-8">
+                                                            <div className="flex flex-col gap-4">
+                                                                <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest flex items-center gap-2">
+                                                                    <div className="w-1 h-1 rounded-full bg-gray-200" /> Customer Details
+                                                                </h4>
+                                                                <div className="flex flex-col gap-1 text-left">
+                                                                    <span className="font-bold text-dark">{order.user.name}</span>
+                                                                    <span className="text-xs text-gray-500">{order.user.email}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex flex-col gap-4">
+                                                                <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest flex items-center gap-2">
+                                                                    <div className="w-1 h-1 rounded-full bg-gray-200" /> Shipping Address
+                                                                </h4>
+                                                                <div className="text-sm font-medium text-gray-600 leading-relaxed italic text-left flex flex-col">
+                                                                    {order.houseNo ? (
+                                                                        <>
+                                                                            <span>{order.houseNo}, {order.street}</span>
+                                                                            {order.landmark && <span>{order.landmark}</span>}
+                                                                            <span>{order.area}, {order.district}</span>
+                                                                            <span>{order.state}, {order.country} - {order.pincode}</span>
+                                                                        </>
+                                                                    ) : (
+                                                                        <span>{order.shippingAddress || 'No address provided'}</span>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="flex flex-col gap-4">
+                                                                <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest flex items-center gap-2">
+                                                                    <Clock className="w-3 h-3" /> Placed On
+                                                                </h4>
+                                                                <span className="text-sm font-bold text-dark text-left">
+                                                                    {new Date(order.createdAt).toLocaleString()}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Items Side */}
+                                                        <div className="md:col-span-2 flex flex-col gap-6">
+                                                            <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest flex items-center gap-2">
+                                                                <Package className="w-3 h-3" /> Order Items ({order.items.length})
+                                                            </h4>
+                                                            <div className="flex flex-col gap-4">
+                                                                {order.items.map((item) => (
+                                                                    <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-3xl border border-gray-100/50 group/item">
+                                                                        <Link 
+                                                                            to={`/products/${item.product.slug}`}
+                                                                            className="w-16 h-16 rounded-2xl bg-white overflow-hidden shadow-sm flex-shrink-0 group-hover/item:scale-95 transition-transform duration-500 block border border-gray-100/30"
+                                                                            onClick={(e) => e.stopPropagation()}
+                                                                        >
+                                                                            {item.product.imageUrl ? (
+                                                                                <img src={resolveImageUrl(item.product.imageUrl)} alt={item.product.name} className="w-full h-full object-cover" />
+                                                                            ) : (
+                                                                                <div className="w-full h-full flex items-center justify-center text-gray-200">
+                                                                                    <Package className="w-8 h-8" />
+                                                                                </div>
+                                                                            )}
+                                                                        </Link>
+                                                                        <div className="flex-1 flex flex-col gap-1 text-left">
+                                                                            <Link 
+                                                                                to={`/products/${item.product.slug}`}
+                                                                                className="text-sm font-bold text-dark hover:text-primary transition-colors inline-block w-fit"
+                                                                                onClick={(e) => e.stopPropagation()}
+                                                                            >
+                                                                                {item.product.name}
+                                                                            </Link>
+                                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Qty: {item.quantity}</span>
+                                                                        </div>
+                                                                        <div className="text-right">
+                                                                            <span className="text-xs font-black text-dark italic tracking-tighter">₹{(item.price * item.quantity).toFixed(2)}</span>
+                                                                            <p className="text-[10px] font-medium text-gray-400">₹{Number(item.price).toFixed(2)} / unit</p>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+
+                                                            <div className="mt-4 pt-6 border-t border-gray-100 flex justify-between items-center">
+                                                                <span className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Order Subtotal</span>
+                                                                <span className="text-2xl font-black text-dark tracking-tighter">₹{Number(order.totalAmount).toFixed(2)}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </motion.div>
                                     )}
                                 </motion.div>

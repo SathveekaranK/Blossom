@@ -8,15 +8,17 @@ import {
     X,
     Loader2,
     AlertCircle,
+    Star,
     Image as ImageIcon,
     Tag,
-    DollarSign,
+    IndianRupee,
     Layers,
     Archive,
     ToggleLeft,
     ToggleRight
 } from 'lucide-react';
 import api from '../../api/api';
+import { resolveImageUrl } from '../../utils/imageUtils';
 
 interface Category {
     id: string;
@@ -33,6 +35,7 @@ interface Product {
     imageUrl?: string;
     isActive: boolean;
     categoryId: string;
+    rating?: number;
     category?: Category;
 }
 
@@ -43,7 +46,9 @@ const ProductsAdmin = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const [error, setError] = useState('');
+    const [search, setSearch] = useState('');
 
     // Form State
     const [formData, setFormData] = useState({
@@ -53,17 +58,24 @@ const ProductsAdmin = () => {
         stock: 0,
         slug: '',
         categoryId: '',
-        imageUrl: ''
+        imageUrl: '',
+        rating: 0
     });
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        const timer = setTimeout(() => {
+            fetchData();
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search]);
 
     const fetchData = async () => {
         try {
+            let url = `/products?limit=100&showInactive=true`;
+            if (search) url += `&search=${search}`;
+            
             const [productsRes, categoriesRes] = await Promise.all([
-                api.get('/products?limit=100&showInactive=true'),
+                api.get(url),
                 api.get('/categories')
             ]);
             setProducts(productsRes.data.products);
@@ -85,7 +97,8 @@ const ProductsAdmin = () => {
                 stock: product.stock,
                 slug: product.slug,
                 categoryId: product.categoryId,
-                imageUrl: product.imageUrl || ''
+                imageUrl: product.imageUrl || '',
+                rating: product.rating || 0
             });
         } else {
             setFormData({
@@ -94,10 +107,12 @@ const ProductsAdmin = () => {
                 price: 0,
                 stock: 0,
                 slug: '',
-                categoryId: categories[0]?.id || '',
-                imageUrl: ''
+                categoryId: categories.find(c => c.name.toLowerCase().includes('skin'))?.id || categories[0]?.id || '',
+                imageUrl: '',
+                rating: 0
             });
         }
+        setImageFile(null);
         setError('');
         setIsModalOpen(true);
     };
@@ -108,10 +123,34 @@ const ProductsAdmin = () => {
         setError('');
 
         try {
+            const data = new FormData();
+            
+            // Map common fields
+            data.append('name', formData.name);
+            data.append('description', formData.description);
+            data.append('price', String(formData.price));
+            data.append('stock', String(formData.stock));
+            data.append('slug', formData.slug);
+            data.append('categoryId', formData.categoryId);
+            data.append('rating', String(formData.rating));
+            
+            // Always send isActive if editing, or let it default for new
             if (editingProduct) {
-                await api.put(`/products/${editingProduct.id}`, formData);
+                data.append('isActive', String(editingProduct.isActive));
+            }
+
+            if (imageFile) {
+                data.append('image', imageFile);
+            }
+
+            if (editingProduct) {
+                await api.put(`/products/${editingProduct.id}`, data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
             } else {
-                await api.post('/products', formData);
+                await api.post('/products', data, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
             }
             setIsModalOpen(false);
             fetchData();
@@ -163,7 +202,9 @@ const ProductsAdmin = () => {
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-primary transition-colors" />
                         <input
                             type="text"
-                            placeholder="Search products..."
+                            placeholder="Search products by name or description..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
                             className="w-full pl-14 pr-6 py-3.5 bg-gray-50/50 border-transparent focus:bg-white focus:border-primary/20 rounded-2xl text-sm font-medium focus:outline-none transition-all"
                         />
                     </div>
@@ -172,16 +213,16 @@ const ProductsAdmin = () => {
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left border-collapse">
                         <thead>
                             <tr className="bg-gray-50/30">
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Product</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Category</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Price</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Stock</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Status</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Actions</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[280px]">Product</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[150px]">Category</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[100px]">Price</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[120px]">Stock</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[120px]">Status</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right min-w-[120px]">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -204,7 +245,11 @@ const ProductsAdmin = () => {
                                             <div className="flex items-center gap-4">
                                                 <div className="w-14 h-14 rounded-2xl bg-gray-100 overflow-hidden shadow-sm">
                                                     {prod.imageUrl ? (
-                                                        <img src={prod.imageUrl} alt={prod.name} className="w-full h-full object-cover" />
+                                                        <img 
+                                                            src={resolveImageUrl(prod.imageUrl)} 
+                                                            alt={prod.name} 
+                                                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                                                        />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center text-gray-300">
                                                             <ImageIcon className="w-6 h-6" />
@@ -225,7 +270,7 @@ const ProductsAdmin = () => {
                                         </td>
                                         <td className="px-8 py-5">
                                             <span className="text-sm font-black text-dark tracking-tight">
-                                                ${Number(prod.price).toFixed(2)}
+                                                ₹{Number(prod.price).toFixed(2)}
                                             </span>
                                         </td>
                                         <td className="px-8 py-5">
@@ -336,7 +381,7 @@ const ProductsAdmin = () => {
 
                                 <div className="flex flex-col gap-2">
                                     <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
-                                        <DollarSign className="w-3 h-3" /> Price
+                                        <IndianRupee className="w-3 h-3" /> Price
                                     </label>
                                     <input
                                         type="number"
@@ -361,6 +406,22 @@ const ProductsAdmin = () => {
 
                                 <div className="flex flex-col gap-2">
                                     <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <Star className="w-3 h-3" /> Public Rating
+                                    </label>
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        min="0"
+                                        max="5"
+                                        required
+                                        value={formData.rating}
+                                        onChange={(e) => setFormData(prev => ({ ...prev, rating: Number(e.target.value) }))}
+                                        className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                    />
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
                                         <Layers className="w-3 h-3" /> Category
                                     </label>
                                     <select
@@ -377,15 +438,43 @@ const ProductsAdmin = () => {
 
                                 <div className="flex flex-col gap-2">
                                     <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
-                                        <ImageIcon className="w-3 h-3" /> Image URL
+                                        <ImageIcon className="w-3 h-3" /> Product Image
                                     </label>
-                                    <input
-                                        type="url"
-                                        value={formData.imageUrl}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, imageUrl: e.target.value }))}
-                                        className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
-                                        placeholder="https://images.unsplash.com/..."
-                                    />
+                                    <div className="flex flex-col gap-4">
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => setImageFile(e.target.files?.[0] || null)}
+                                            className="hidden"
+                                            id="product-image"
+                                        />
+                                        <label
+                                            htmlFor="product-image"
+                                            className="flex items-center gap-3 px-6 py-4 bg-gray-50 border-2 border-dashed border-gray-200 hover:border-primary/40 rounded-3xl cursor-pointer transition-all group"
+                                        >
+                                            <div className="w-10 h-10 rounded-xl bg-white border border-gray-100 flex items-center justify-center text-gray-400 group-hover:text-primary transition-colors">
+                                                <ImageIcon className="w-5 h-5" />
+                                            </div>
+                                            <div className="flex flex-col text-left">
+                                                <span className="text-xs font-black text-dark tracking-tight">
+                                                    {imageFile ? imageFile.name : 'Upload New File'}
+                                                </span>
+                                                <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                                                    JPG, PNG (MAX 5MB)
+                                                </span>
+                                            </div>
+                                        </label>
+                                        {!imageFile && formData.imageUrl && (
+                                            <div className="flex items-center gap-3 px-6 py-4 bg-gray-50 rounded-3xl">
+                                                <img 
+                                                    src={resolveImageUrl(formData.imageUrl)} 
+                                                    className="w-10 h-10 rounded-xl object-cover shadow-sm" 
+                                                    alt="current" 
+                                                />
+                                                <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Current Image</span>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
 
                                 <div className="flex flex-col gap-2 md:col-span-2">
@@ -407,10 +496,33 @@ const ProductsAdmin = () => {
                                 )}
 
                                 <button
+                                    type="submit"
                                     disabled={isSubmitting}
-                                    className="md:col-span-2 py-4 bg-dark text-white rounded-3xl font-black hover:bg-primary transition-all duration-300 shadow-xl shadow-black/10 flex items-center justify-center gap-2 mt-4"
+                                    className="md:col-span-2 h-[60px] bg-dark text-white rounded-3xl font-black hover:bg-primary disabled:bg-gray-200 disabled:cursor-not-allowed transition-all duration-300 shadow-xl shadow-black/10 flex items-center justify-center gap-2 mt-4 overflow-hidden"
                                 >
-                                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : editingProduct ? 'Synchronize Record' : 'Publish Product'}
+                                    <AnimatePresence mode="wait">
+                                        {isSubmitting ? (
+                                            <motion.div
+                                                key="loader"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.8 }}
+                                                className="flex items-center gap-2"
+                                            >
+                                                <Loader2 className="w-5 h-5 animate-spin" />
+                                                <span>Processing...</span>
+                                            </motion.div>
+                                        ) : (
+                                            <motion.span
+                                                key="text"
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                            >
+                                                {editingProduct ? 'Synchronize Record' : 'Publish Product'}
+                                            </motion.span>
+                                        )}
+                                    </AnimatePresence>
                                 </button>
                             </form>
                         </motion.div>

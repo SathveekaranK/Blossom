@@ -1,4 +1,4 @@
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 // Get the logged-in user's cart
 export const getCart = async (req, res) => {
     try {

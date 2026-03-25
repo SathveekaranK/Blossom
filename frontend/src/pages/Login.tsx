@@ -1,184 +1,152 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Mail, Lock, ArrowRight, Loader2, Sparkles, CheckCircle2, X } from 'lucide-react';
+import { Mail, Lock, Loader2, ChevronRight, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../store/useAuthStore';
+import { useCartStore } from '../store/useCartStore';
 import api from '../api/api';
 
 const Login = () => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [isSuccess, setIsSuccess] = useState(false);
-
-    const setAuth = useAuthStore((state) => state.setAuth);
+    const { setAuth, isAuthenticated } = useAuthStore();
+    const { addItem } = useCartStore();
     const navigate = useNavigate();
+    const location = useLocation();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [error, setError] = useState('');
+    const [formData, setFormData] = useState({
+        email: '',
+        password: '',
+    });
+
+    // Redirect if already authenticated
+    if (isAuthenticated) {
+        const from = (location.state as any)?.from?.pathname || '/';
+        navigate(from, { replace: true });
+    }
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setIsLoading(true);
+        setIsSubmitting(true);
         setError('');
-
         try {
-            const response = await api.post('/auth/login', { email, password });
-            const { user, token } = response.data;
+            const res = await api.post('/auth/login', {
+                email: formData.email,
+                password: formData.password,
+            });
+            
+            const { user, token } = res.data;
+            setAuth(user, token);
+            await useCartStore.getState().fetchCartFromDB();
 
-            setIsSuccess(true);
-            setTimeout(() => {
-                setAuth(user, token);
-                navigate('/');
-            }, 1500);
+            // Handle post-login redirect for cart
+            const redirectParams = new URLSearchParams(location.search);
+            const redirect = redirectParams.get('redirect');
+            const productId = redirectParams.get('productId');
+            const quantity = parseInt(redirectParams.get('quantity') || '1');
+
+            if (redirect === 'add-to-cart' && productId) {
+                try {
+                    const prodRes = await api.get(`/products/id/${productId}`);
+                    addItem(prodRes.data, quantity);
+                    navigate('/shop', { replace: true });
+                } catch (e) {
+                    console.error('Failed to auto-add to cart after login', e);
+                    navigate('/shop', { replace: true });
+                }
+            } else {
+                const from = (location.state as any)?.from?.pathname || '/';
+                navigate(from, { replace: true });
+            }
         } catch (err: any) {
             setError(err.response?.data?.error || 'Login failed. Please check your credentials.');
         } finally {
-            setIsLoading(false);
+            setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="min-h-[85vh] flex items-center justify-center px-6 py-12">
-            <div className="absolute inset-0 -z-10 overflow-hidden">
-                <div className="absolute top-[20%] left-[10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute bottom-[20%] right-[10%] w-[400px] h-[400px] bg-secondary/10 rounded-full blur-[100px] animate-pulse delay-700" />
-            </div>
-
-            <motion.div
+        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+            <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="w-full max-w-md"
             >
-                <div className="glass rounded-[40px] p-10 shadow-2xl relative overflow-hidden border-2 border-white/40">
-                    <AnimatePresence mode="wait">
-                        {!isSuccess ? (
-                            <motion.div
-                                key="login-form"
-                                initial={{ opacity: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="flex flex-col gap-8"
-                            >
-                                <div className="flex flex-col gap-3 text-center relative">
-                                    <Link
-                                        to="/"
-                                        className="absolute -top-6 -right-6 p-2 bg-white/50 backdrop-blur-md rounded-full text-dark/40 hover:text-dark hover:bg-white transition-all shadow-sm group"
-                                        title="Exit Login"
-                                    >
-                                        <X className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-                                    </Link>
-                                    <div className="w-16 h-16 bg-primary/20 rounded-3xl flex items-center justify-center text-primary self-center mb-2">
-                                        <Sparkles className="w-8 h-8 fill-primary" />
-                                    </div>
-                                    <h1 className="text-3xl font-black text-dark tracking-tight">Welcome Back.</h1>
-                                    <p className="text-gray-500 font-medium">Log in to access your luxury beauty space.</p>
-                                </div>
-
-                                <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-sm font-bold text-dark/70 ml-2 uppercase tracking-widest px-1">Email</label>
-                                        <div className="relative group">
-                                            <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
-                                            <input
-                                                type="email"
-                                                required
-                                                value={email}
-                                                onChange={(e) => setEmail(e.target.value)}
-                                                className="w-full pl-14 pr-6 py-4 bg-white border-2 border-gray-100 rounded-3xl focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-dark"
-                                                placeholder="beauty@blossom.com"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <div className="flex justify-between items-center ml-2 px-1">
-                                            <label className="text-sm font-bold text-dark/70 uppercase tracking-widest">Password</label>
-                                            <Link to="/forgot-password" className="text-xs font-bold text-primary hover:text-primary-dark transition-colors">Forgot?</Link>
-                                        </div>
-                                        <div className="relative group">
-                                            <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" />
-                                            <input
-                                                type="password"
-                                                required
-                                                value={password}
-                                                onChange={(e) => setPassword(e.target.value)}
-                                                className="w-full pl-14 pr-6 py-4 bg-white border-2 border-gray-100 rounded-3xl focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all font-medium text-dark"
-                                                placeholder="••••••••"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    {error && (
-                                        <motion.p
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            className="text-red-500 text-xs font-bold bg-red-50 p-3 rounded-2xl border border-red-100 flex items-center gap-2"
-                                        >
-                                            <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                                            {error}
-                                        </motion.p>
-                                    )}
-
-                                    <button
-                                        disabled={isLoading}
-                                        className="group relative w-full py-4 bg-dark text-white rounded-3xl font-black hover:bg-primary transition-all duration-300 shadow-xl shadow-black/10 hover:shadow-primary/30 disabled:opacity-70 flex items-center justify-center gap-3 overflow-hidden"
-                                    >
-                                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                                        {isLoading ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            <>
-                                                <span>Continue to Blossom.</span>
-                                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                            </>
-                                        )}
-                                    </button>
-                                </form>
-
-                                <p className="text-center text-sm font-medium text-gray-500">
-                                    New to Blossom? <Link to="/register" className="text-primary font-black hover:text-primary-dark transition-colors">Create account</Link>
-                                </p>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key="success"
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className="flex flex-col items-center justify-center py-12 gap-6 text-center"
-                            >
-                                <div className="w-24 h-24 bg-secondary/20 rounded-full flex items-center justify-center text-secondary relative">
-                                    <motion.div
-                                        initial={{ scale: 0 }}
-                                        animate={{ scale: 1 }}
-                                        transition={{ type: "spring", stiffness: 200, damping: 10 }}
-                                    >
-                                        <CheckCircle2 className="w-16 h-16 stroke-[1.5]" />
-                                    </motion.div>
-                                    <motion.div
-                                        className="absolute inset-0 border-4 border-secondary/30 rounded-full"
-                                        initial={{ scale: 0.8, opacity: 0 }}
-                                        animate={{ scale: 1.5, opacity: 0 }}
-                                        transition={{ repeat: Infinity, duration: 1.5 }}
-                                    />
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <h2 className="text-3xl font-black text-dark tracking-tight">Login Successful</h2>
-                                    <p className="text-gray-500 font-bold">Your beauty journey continues...</p>
-                                </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                <div className="flex flex-col items-center gap-8 mb-12">
+                    <Link to="/" className="w-12 h-12 rounded-2xl bg-dark text-white flex items-center justify-center hover:bg-primary transition-all duration-500 shadow-xl shadow-black/10">
+                        <ArrowLeft className="w-6 h-6" />
+                    </Link>
+                    <div className="flex flex-col items-center gap-2">
+                        <h1 className="text-4xl font-black text-dark tracking-tighter text-center">
+                            Welcome Back.
+                        </h1>
+                        <p className="text-gray-400 font-medium text-center">
+                            Access your professional skincare account
+                        </p>
+                    </div>
                 </div>
 
-                <div className="mt-8 flex items-center justify-center gap-6">
-                    <div className="h-px bg-gray-200 flex-1" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">Blossom Inc. 2026</span>
-                    <div className="h-px bg-gray-200 flex-1" />
+                {error && (
+                    <motion.div 
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600"
+                    >
+                        <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                        <span className="text-xs font-bold">{error}</span>
+                    </motion.div>
+                )}
+
+                <motion.form
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    onSubmit={handleSubmit}
+                    className="flex flex-col gap-6"
+                >
+                    <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-widest flex items-center gap-2">
+                            <Mail className="w-3 h-3" /> Email Address
+                        </label>
+                        <input
+                            type="email" required
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                            placeholder="your@email.com"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-widest flex items-center gap-2">
+                            <Lock className="w-3 h-3" /> Password
+                        </label>
+                        <input
+                            type="password" required
+                            value={formData.password}
+                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                            placeholder="••••••••"
+                        />
+                    </div>
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className="w-full py-5 bg-dark text-white rounded-[40px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-black/10 hover:bg-primary transition-all duration-500 flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                        {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                            <>
+                                <span>Sign In</span>
+                                <ChevronRight className="w-4 h-4" />
+                            </>
+                        )}
+                    </button>
+                </motion.form>
+
+                <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col items-center gap-2">
+                    <span className="text-xs text-gray-400 font-medium">Don't have an account?</span>
+                    <Link to="/register" className="text-xs font-black text-dark hover:text-primary transition-colors uppercase tracking-widest">Create One Now</Link>
                 </div>
             </motion.div>
         </div>
     );
 };
-
-// Add AnimatePresence import fix
-import { AnimatePresence } from 'framer-motion';
 
 export default Login;

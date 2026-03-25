@@ -6,7 +6,6 @@ import {
     User as UserIcon,
     Shield,
     ShoppingBag,
-    Bell,
     Mail,
     Calendar,
     ChevronDown,
@@ -20,6 +19,7 @@ interface UserData {
     email: string;
     name: string;
     role: string;
+    phone: string;
     isSubscribed: boolean;
     createdAt: string;
     _count: { orders: number };
@@ -83,12 +83,6 @@ const UsersAdmin = () => {
                         <UserIcon className="w-4 h-4 text-primary" />
                         <span className="text-xs font-black text-primary">{users.length} Total Users</span>
                     </div>
-                    <div className="flex items-center gap-2 bg-secondary/10 px-4 py-2 rounded-2xl">
-                        <Bell className="w-4 h-4 text-secondary" />
-                        <span className="text-xs font-black text-secondary">
-                            {users.filter(u => u.isSubscribed).length} Subscribers
-                        </span>
-                    </div>
                 </div>
             </div>
 
@@ -110,24 +104,24 @@ const UsersAdmin = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-50/30">
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">User</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Role</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Subscription</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Orders</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Joined</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Actions</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[250px]">User</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[150px]">Phone</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[120px]">Role</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[100px]">Orders</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[150px]">Joined</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right min-w-[100px]">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={6} className="px-8 py-20 text-center">
+                                    <td colSpan={5} className="px-8 py-20 text-center">
                                         <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
                                     </td>
                                 </tr>
                             ) : filteredUsers.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-8 py-20 text-center">
+                                    <td colSpan={5} className="px-8 py-20 text-center">
                                         <p className="text-gray-300 font-bold uppercase tracking-widest text-xs">No users found.</p>
                                     </td>
                                 </tr>
@@ -149,21 +143,17 @@ const UsersAdmin = () => {
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
+                                                <span className="text-xs font-bold text-dark/60 tracking-wider">
+                                                    {user.phone || 'N/A'}
+                                                </span>
+                                            </td>
+                                            <td className="px-8 py-5">
                                                 <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit ${user.role === 'ADMIN'
                                                     ? 'bg-dark text-white'
                                                     : 'bg-gray-100 text-gray-500'
                                                     }`}>
                                                     {user.role === 'ADMIN' && <Shield className="w-3 h-3" />}
                                                     {user.role}
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5">
-                                                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit ${user.isSubscribed
-                                                    ? 'bg-secondary/10 text-secondary border border-secondary/20'
-                                                    : 'bg-gray-50 text-gray-300'
-                                                    }`}>
-                                                    <Bell className="w-3 h-3" />
-                                                    {user.isSubscribed ? 'Subscribed' : 'Not subscribed'}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5">
@@ -190,7 +180,7 @@ const UsersAdmin = () => {
                                         </tr>
                                         {expandedUser === user.id && (
                                             <tr key={`${user.id}-details`}>
-                                                <td colSpan={6} className="px-8 py-6 bg-gray-50/50">
+                                                <td colSpan={5} className="px-8 py-6 bg-gray-50/50">
                                                     {detailLoading ? (
                                                         <div className="flex justify-center py-8">
                                                             <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -218,7 +208,7 @@ const UsersAdmin = () => {
                                                                                 <span className="text-xs font-medium text-gray-400">
                                                                                     {order.items.length} items
                                                                                 </span>
-                                                                                <span className="text-sm font-black text-dark">${Number(order.totalAmount).toFixed(2)}</span>
+                                                                                <span className="text-sm font-black text-dark">₹{Number(order.totalAmount).toFixed(2)}</span>
                                                                             </div>
                                                                             <span className="text-[10px] text-gray-300">
                                                                                 {new Date(order.createdAt).toLocaleDateString()}

@@ -19,10 +19,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/useCartStore';
 import { useAuthStore } from '../store/useAuthStore';
 import api from '../api/api';
+import { resolveImageUrl } from '../utils/imageUtils';
 
 const Checkout = () => {
     const { items, total, clearCart } = useCartStore();
-    const { isAuthenticated } = useAuthStore();
+    const { user, isAuthenticated, setAuth } = useAuthStore();
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -30,29 +31,154 @@ const Checkout = () => {
     const [error, setError] = useState('');
 
     const [formData, setFormData] = useState({
-        email: '',
-        name: '',
-        address: '',
-        city: '',
-        zip: '',
-        country: 'United States',
+        email: user?.email || '',
+        name: user?.name || '',
+        password: '',
+        houseNo: '',
+        street: '',
+        landmark: '',
+        area: '',
+        pincode: '',
+        district: '',
+        state: '',
+        country: 'India',
+        countryCode: '+91',
+        phone: '',
     });
+
+    const [isFetchingLocation, setIsFetchingLocation] = useState(false);
+
+    const handlePincodeChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const pincode = e.target.value.replace(/\D/g, '').slice(0, 6);
+        setFormData(prev => ({ ...prev, pincode }));
+
+        if (pincode.length === 6) {
+            setIsFetchingLocation(true);
+            try {
+                const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+                const data = await response.json();
+                
+                if (data[0].Status === "Success") {
+                    const postOffice = data[0].PostOffice[0];
+                    setFormData(prev => ({
+                        ...prev,
+                        area: postOffice.Name || postOffice.Block || '',
+                        district: postOffice.District || '',
+                        state: postOffice.State || '',
+                        country: 'India'
+                    }));
+                }
+            } catch (err) {
+                console.error('Pincode lookup failed');
+            } finally {
+                setIsFetchingLocation(false);
+            }
+        }
+    };
+
+    const [otp, setOtp] = useState('');
+    const [isOtpSent, setIsOtpSent] = useState(false);
+    const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+
+    const handleContinueToPayment = async () => {
+        const { name, email, password, houseNo, street, area, district, state, country, pincode, phone } = formData;
+        if (!name || (!isAuthenticated && !email) || (!isAuthenticated && !password) || !houseNo || !street || !area || !district || !state || !country || !pincode || !phone) {
+            setError('Please fill in all required fields.');
+            return;
+        }
+
+        if (pincode.length !== 6) {
+            setError('Please enter a valid 6-digit Pincode.');
+            return;
+        }
+
+        const phoneRegex = /^\d{7,15}$/;
+        if (!phoneRegex.test(phone.replace(/\D/g, ''))) {
+            setError('Please enter a valid phone number (7-15 digits).');
+            return;
+        }
+
+        if (!isAuthenticated) {
+            setIsSubmitting(true);
+            setError('');
+            try {
+                await api.post('/auth/checkout-login', {
+                    email: formData.email,
+                    password: formData.password,
+                    name: formData.name,
+                });
+                setIsOtpSent(true);
+            } catch (err: any) {
+                setError(err.response?.data?.error || 'Authentication failed. Please verify your info.');
+            } finally {
+                setIsSubmitting(false);
+            }
+        } else {
+            setStep(2);
+            setError('');
+        }
+    };
+
+    const handleVerifyOtp = async () => {
+        if (!otp) return;
+        setIsVerifyingOtp(true);
+        setError('');
+        try {
+            const res = await api.post('/auth/verify-otp', { email: formData.email, otp });
+            const { user, token } = res.data;
+            setAuth(user, token);
+            setStep(2);
+            setError('');
+        } catch (err: any) {
+            setError(err.response?.data?.error || 'Invalid or expired OTP.');
+        } finally {
+            setIsVerifyingOtp(false);
+        }
+    };
+
+    const handleResendOtp = async () => {
+        if (!formData.email) return;
+        setIsVerifyingOtp(true);
+        setError('');
+        try {
+            await api.post('/auth/resend-otp', { email: formData.email });
+            setIsOtpSent(true);
+            setError('');
+        } catch (err: any) {
+            setError(err.response?.data?.error || 'Failed to resend OTP.');
+        } finally {
+            setIsVerifyingOtp(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError('');
 
-        if (!isAuthenticated) {
-            setError('Please log in to complete your purchase.');
+        if (!useAuthStore.getState().isAuthenticated) {
+            setError('Authentication state lost. Please refresh.');
             setIsSubmitting(false);
             return;
         }
 
         try {
+            const fullPhone = `${formData.countryCode} ${formData.phone.replace(/\D/g, '')}`;
+            // Construct a fallback string address just in case, but also send granular fields
+            const fullAddress = `${formData.houseNo}, ${formData.street}${formData.landmark ? `, ${formData.landmark}` : ''}, ${formData.area}, ${formData.district}, ${formData.state}, ${formData.pincode}, ${formData.country}`;
+            
             const orderPayload = {
                 items: items.map(i => ({ productId: i.id, quantity: i.quantity })),
-                shippingAddress: `${formData.address}, ${formData.city}, ${formData.zip}, ${formData.country}`,
+                shippingAddress: fullAddress,
+                phone: fullPhone,
+                houseNo: formData.houseNo,
+                street: formData.street,
+                landmark: formData.landmark,
+                area: formData.area,
+                district: formData.district,
+                state: formData.state,
+                country: formData.country,
+                pincode: formData.pincode,
             };
 
             const res = await api.post('/orders/checkout', orderPayload);
@@ -128,12 +254,12 @@ const Checkout = () => {
                         <h1 className="text-5xl font-black text-dark tracking-tighter">Checkout.</h1>
                     </div>
 
-                    {!isAuthenticated && (
-                        <div className="p-6 bg-amber-50 border border-amber-100 rounded-3xl flex items-start gap-4">
-                            <AlertCircle className="w-6 h-6 text-amber-500 flex-shrink-0 mt-0.5" />
-                            <div className="flex flex-col gap-2">
-                                <span className="font-bold text-dark">Login Required</span>
-                                <p className="text-sm text-gray-500">You need to <Link to="/login" className="text-primary font-bold hover:underline">sign in</Link> to complete your purchase.</p>
+                    {error && step === 1 && (
+                        <div className="p-4 bg-red-50 border border-red-100 rounded-3xl flex items-start gap-4 mb-[-2rem]">
+                            <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0 mt-0.5" />
+                            <div className="flex flex-col gap-1">
+                                <span className="font-bold text-red-700">Action Required</span>
+                                <p className="text-sm text-red-600">{error}</p>
                             </div>
                         </div>
                     )}
@@ -159,18 +285,20 @@ const Checkout = () => {
                                 className="flex flex-col gap-8"
                             >
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="flex flex-col gap-2">
-                                        <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
-                                            <Mail className="w-3 h-3" /> Email Address
-                                        </label>
-                                        <input
-                                            type="email" required
-                                            value={formData.email}
-                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
-                                            placeholder="your@email.com"
-                                        />
-                                    </div>
+                                    {!isAuthenticated && (
+                                        <div className="flex flex-col gap-2">
+                                            <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
+                                                <Mail className="w-3 h-3" /> Email Address
+                                            </label>
+                                            <input
+                                                type="email" required
+                                                value={formData.email}
+                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                placeholder="your@email.com"
+                                            />
+                                        </div>
+                                    )}
                                     <div className="flex flex-col gap-2">
                                         <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
                                             <UserIcon className="w-3 h-3" /> Full Name
@@ -183,42 +311,191 @@ const Checkout = () => {
                                             placeholder="Your Name"
                                         />
                                     </div>
-                                </div>
-                                <div className="flex flex-col gap-2">
-                                    <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
-                                        <MapPin className="w-3 h-3" /> Shipping Address
-                                    </label>
-                                    <input
-                                        type="text" required
-                                        value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                        className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all mb-4"
-                                        placeholder="Street Address"
-                                    />
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
+                                           Phone Number
+                                        </label>
+                                        <div className="flex gap-2">
+                                            <select
+                                                value={formData.countryCode}
+                                                onChange={(e) => setFormData({ ...formData, countryCode: e.target.value })}
+                                                className="w-[100px] px-4 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all appearance-none cursor-pointer"
+                                            >
+                                                <option value="+91">+91 (IN)</option>
+                                                <option value="+1">+1 (US/CA)</option>
+                                                <option value="+44">+44 (UK)</option>
+                                                <option value="+61">+61 (AU)</option>
+                                                <option value="+971">+971 (AE)</option>
+                                                <option value="+65">+65 (SG)</option>
+                                            </select>
+                                            <input
+                                                type="tel" required
+                                                value={formData.phone}
+                                                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                                className="flex-1 px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                placeholder="(000) 000-0000"
+                                            />
+                                        </div>
+                                    </div>
+                                    {isOtpSent && (
+                                        <div className="flex flex-col gap-2 md:col-span-2">
+                                            <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em]">Enter 6-Digit OTP Sent to {formData.email}</label>
+                                            <div className="flex gap-4">
+                                                <input
+                                                    type="text"
+                                                    maxLength={6}
+                                                    value={otp}
+                                                    onChange={(e) => setOtp(e.target.value)}
+                                                    className="flex-1 px-6 py-4 bg-primary/5 border-2 border-primary/20 focus:bg-white rounded-3xl text-center text-lg font-black tracking-[0.5em] focus:outline-none transition-all"
+                                                    placeholder="000000"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleVerifyOtp}
+                                                    disabled={isVerifyingOtp || otp.length < 6}
+                                                    className="px-10 bg-primary text-dark rounded-3xl font-black text-xs uppercase tracking-widest hover:bg-dark hover:text-white transition-all disabled:opacity-50"
+                                                >
+                                                    Confirm
+                                                </button>
+                                            </div>
+                                                <button 
+                                                    type="button" 
+                                                    onClick={handleResendOtp}
+                                                    className="text-[10px] font-black text-primary uppercase tracking-widest self-start ml-4 mt-1 hover:text-dark transition-colors"
+                                                >
+                                                    Resend Code
+                                                </button>
+                                        </div>
+                                    )}
+                                    <div className="flex flex-col gap-2 md:col-span-2">
+                                        <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <MapPin className="w-3 h-3" /> Detailed Address
+                                        </label>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <input
+                                                type="text" required
+                                                value={formData.houseNo}
+                                                onChange={(e) => setFormData({ ...formData, houseNo: e.target.value })}
+                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                placeholder="House/Flat No."
+                                            />
+                                            <input
+                                                type="text" required
+                                                value={formData.street}
+                                                onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                                                className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                placeholder="Street Name"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2 md:col-span-2">
+                                        <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            Landmark (Optional)
+                                        </label>
                                         <input
-                                            type="text" required
-                                            value={formData.city}
-                                            onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                                            type="text"
+                                            value={formData.landmark}
+                                            onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
                                             className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
-                                            placeholder="City"
-                                        />
-                                        <input
-                                            type="text" required
-                                            value={formData.zip}
-                                            onChange={(e) => setFormData({ ...formData, zip: e.target.value })}
-                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
-                                            placeholder="Zip Code"
+                                            placeholder="Near / Behind..."
                                         />
                                     </div>
+                                    <div className="flex flex-col gap-2 md:col-span-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
+                                                    Pincode
+                                                </label>
+                                                <div className="relative">
+                                                    <input
+                                                        type="text" required
+                                                        value={formData.pincode}
+                                                        onChange={handlePincodeChange}
+                                                        className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                        placeholder="6-Digit Pincode"
+                                                    />
+                                                    {isFetchingLocation && (
+                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em]">Area / Locality</label>
+                                                <input
+                                                    type="text" required
+                                                    value={formData.area}
+                                                    onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                    placeholder="Area"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div className="flex flex-col gap-2 md:col-span-2">
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em]">District</label>
+                                                <input
+                                                    type="text" required
+                                                    value={formData.district}
+                                                    onChange={(e) => setFormData({ ...formData, district: e.target.value })}
+                                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                    placeholder="District"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em]">State</label>
+                                                <input
+                                                    type="text" required
+                                                    value={formData.state}
+                                                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                    placeholder="State"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col gap-2">
+                                                <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em]">Country</label>
+                                                <input
+                                                    type="text" required
+                                                    value={formData.country}
+                                                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                                    placeholder="Country"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
+                                {!isAuthenticated && (
+                                    <div className="flex flex-col gap-2">
+                                        <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <Lock className="w-3 h-3" /> Password
+                                        </label>
+                                        <input
+                                            type="password" required={!isAuthenticated}
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                            placeholder="Enter a secure password to save your order"
+                                        />
+                                        <span className="text-xs text-gray-400 ml-4 font-medium mt-1">If you already have an account, enter your password to login. Otherwise, we'll create one for you.</span>
+                                    </div>
+                                )}
+
                                 <button
                                     type="button"
-                                    onClick={() => setStep(2)}
-                                    className="w-full py-5 bg-dark text-white rounded-[40px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-black/10 hover:bg-primary transition-all duration-300 flex items-center justify-center gap-4"
+                                    onClick={handleContinueToPayment}
+                                    disabled={isSubmitting}
+                                    className="w-full py-5 bg-dark text-white rounded-[40px] font-black text-xs uppercase tracking-widest shadow-2xl shadow-black/10 hover:bg-primary transition-all duration-300 flex items-center justify-center gap-4 disabled:opacity-50"
                                 >
-                                    <span>Continue to Payment</span>
-                                    <ChevronRight className="w-4 h-4" />
+                                    {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                                        <>
+                                            <span>Continue to Payment</span>
+                                            <ChevronRight className="w-4 h-4" />
+                                        </>
+                                    )}
                                 </button>
                             </motion.div>
                         ) : (
@@ -245,11 +522,11 @@ const Checkout = () => {
                                         <div className="flex flex-col gap-3">
                                             <div className="flex items-center justify-between text-xs text-gray-400">
                                                 <span className="font-bold">Shipping to:</span>
-                                                <span className="font-medium">{formData.address}, {formData.city}</span>
+                                                <span className="font-medium truncate max-w-[200px]">{formData.houseNo}, {formData.street}, {formData.area}</span>
                                             </div>
                                             <div className="flex items-center justify-between text-xs text-gray-400">
                                                 <span className="font-bold">Contact:</span>
-                                                <span className="font-medium">{formData.email}</span>
+                                                <span className="font-medium">{user?.email || formData.email}</span>
                                             </div>
                                             <div className="flex items-center justify-between text-xs text-gray-400">
                                                 <span className="font-bold">Items:</span>
@@ -263,7 +540,7 @@ const Checkout = () => {
                                     </p>
                                 </div>
 
-                                {error && (
+                                {error && step === 2 && (
                                     <div className="p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-500">
                                         <AlertCircle className="w-5 h-5 flex-shrink-0" />
                                         <span className="text-xs font-bold">{error}</span>
@@ -277,7 +554,7 @@ const Checkout = () => {
                                     >
                                         {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : (
                                             <>
-                                                <span>Place Order — ${total.toFixed(2)}</span>
+                                                <span>Place Order — ₹{total.toFixed(2)}</span>
                                                 <ArrowLeft className="w-5 h-5 rotate-180 group-hover:translate-x-1 transition-transform" />
                                             </>
                                         )}
@@ -307,13 +584,13 @@ const Checkout = () => {
                             {items.map((item) => (
                                 <div key={item.id} className="flex items-center gap-5">
                                     <div className="w-16 h-20 rounded-2xl bg-white overflow-hidden shadow-sm flex-shrink-0">
-                                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                        <img src={resolveImageUrl(item.imageUrl)} alt={item.name} className="w-full h-full object-cover" />
                                     </div>
                                     <div className="flex flex-col flex-1">
                                         <h4 className="text-sm font-black text-dark leading-tight">{item.name}</h4>
                                         <span className="text-[10px] font-bold text-gray-400 capitalize">{item.quantity} units</span>
                                     </div>
-                                    <span className="text-sm font-black text-dark">${(item.price * item.quantity).toFixed(2)}</span>
+                                    <span className="text-sm font-black text-dark">₹{(item.price * item.quantity).toFixed(2)}</span>
                                 </div>
                             ))}
                         </div>
@@ -321,7 +598,7 @@ const Checkout = () => {
                         <div className="flex flex-col gap-4 pt-10 border-t border-gray-200">
                             <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                                 <span className="uppercase tracking-widest">Subtotal</span>
-                                <span className="text-dark">${total.toFixed(2)}</span>
+                                <span className="text-dark">₹{total.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center text-xs font-bold text-gray-400">
                                 <span className="uppercase tracking-widest">Shipping</span>
@@ -329,7 +606,7 @@ const Checkout = () => {
                             </div>
                             <div className="flex justify-between items-center pt-4">
                                 <span className="text-lg font-black text-dark tracking-tighter uppercase">Total</span>
-                                <span className="text-3xl font-black text-dark">${total.toFixed(2)}</span>
+                                <span className="text-3xl font-black text-dark">₹{total.toFixed(2)}</span>
                             </div>
                         </div>
 

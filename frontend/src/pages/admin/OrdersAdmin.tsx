@@ -6,14 +6,15 @@ import {
     CheckCircle2,
     Clock,
     Truck,
-    XCircle,
     User as UserIcon,
     Package,
     MapPin,
     Calendar,
-    X
+    X,
+    AlertTriangle
 } from 'lucide-react';
 import api from '../../api/api';
+import { resolveImageUrl } from '../../utils/imageUtils';
 
 interface OrderItem {
     id: string;
@@ -30,6 +31,14 @@ interface Order {
     totalAmount: number;
     status: string;
     shippingAddress: string | null;
+    houseNo?: string;
+    street?: string;
+    landmark?: string;
+    area?: string;
+    district?: string;
+    state?: string;
+    country?: string;
+    pincode?: string;
     createdAt: string;
     user: {
         name: string;
@@ -39,19 +48,15 @@ interface Order {
 }
 
 const statusColors: any = {
-    PENDING: 'bg-amber-50 text-amber-600 border-amber-100',
-    PAID: 'bg-blue-50 text-blue-600 border-blue-100',
-    SHIPPED: 'bg-primary/10 text-primary border-primary/20',
-    DELIVERED: 'bg-secondary/10 text-secondary border-secondary/20',
-    CANCELLED: 'bg-red-50 text-red-500 border-red-100',
+    ORDER: 'bg-amber-50 text-amber-600 border-amber-100',
+    SHIPPED: 'bg-blue-50 text-blue-600 border-blue-100',
+    DELIVERED: 'bg-emerald-50 text-emerald-600 border-emerald-100',
 };
 
 const statusIcons: any = {
-    PENDING: Clock,
-    PAID: Loader2,
+    ORDER: Clock,
     SHIPPED: Truck,
     DELIVERED: CheckCircle2,
-    CANCELLED: XCircle,
 };
 
 const OrdersAdmin = () => {
@@ -60,6 +65,7 @@ const OrdersAdmin = () => {
     const [statusFilter, setStatusFilter] = useState('ALL');
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [confirmModal, setConfirmModal] = useState<{ orderId: string; newStatus: string } | null>(null);
 
     useEffect(() => {
         fetchOrders();
@@ -76,15 +82,22 @@ const OrdersAdmin = () => {
         }
     };
 
-    const handleUpdateStatus = async (id: string, newStatus: string) => {
+    const requestStatusUpdate = (id: string, newStatus: string) => {
+        setConfirmModal({ orderId: id, newStatus });
+    };
+
+    const confirmStatusUpdate = async () => {
+        if (!confirmModal) return;
         try {
-            await api.put(`/orders/${id}/status`, { status: newStatus });
+            await api.put(`/orders/${confirmModal.orderId}/status`, { status: confirmModal.newStatus });
             fetchOrders();
-            if (selectedOrder?.id === id) {
-                setSelectedOrder(prev => prev ? { ...prev, status: newStatus } : null);
+            if (selectedOrder?.id === confirmModal.orderId) {
+                setSelectedOrder(prev => prev ? { ...prev, status: confirmModal.newStatus } : null);
             }
         } catch (err) {
             alert('Status update failed');
+        } finally {
+            setConfirmModal(null);
         }
     };
 
@@ -101,19 +114,20 @@ const OrdersAdmin = () => {
                     <h2 className="text-2xl font-black text-dark tracking-tight">Order Fulfillment</h2>
                     <p className="text-gray-400 font-semibold text-xs uppercase tracking-widest">Process customer purchases</p>
                 </div>
-                <div className="flex items-center gap-4">
-                    <select
-                        value={statusFilter}
-                        onChange={(e) => setStatusFilter(e.target.value)}
-                        className="text-xs font-bold bg-white border border-gray-100 rounded-xl px-4 py-2 focus:ring-4 focus:ring-primary/10 outline-none transition-all shadow-sm"
-                    >
-                        <option value="ALL">All Statuses</option>
-                        <option value="PENDING">Pending</option>
-                        <option value="PAID">Paid</option>
-                        <option value="SHIPPED">Shipped</option>
-                        <option value="DELIVERED">Delivered</option>
-                        <option value="CANCELLED">Cancelled</option>
-                    </select>
+                <div className="flex items-center gap-2">
+                    {['ALL', 'ORDER', 'SHIPPED', 'DELIVERED'].map((s) => (
+                        <button
+                            key={s}
+                            onClick={() => setStatusFilter(s)}
+                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                statusFilter === s
+                                ? 'bg-dark text-white shadow-lg'
+                                : 'bg-white text-dark hover:bg-gray-100 border border-gray-200'
+                            }`}
+                        >
+                            {s === 'ALL' ? 'All' : s}
+                        </button>
+                    ))}
                 </div>
             </div>
 
@@ -135,12 +149,12 @@ const OrdersAdmin = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-50/30">
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Order Ref</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Customer</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Items</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Total</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Status</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Actions</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[120px]">Order Ref</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[250px]">Customer</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[120px]">Items</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[120px]">Total</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[150px]">Status</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right min-w-[150px]">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -183,26 +197,30 @@ const OrdersAdmin = () => {
                                                 <span className="text-sm font-bold text-gray-500">{order.items.length} items</span>
                                             </td>
                                             <td className="px-8 py-5">
-                                                <span className="text-sm font-black text-dark">${order.totalAmount.toFixed(2)}</span>
+                                                <span className="text-xs font-black text-dark italic">₹{order.totalAmount.toFixed(2)}</span>
                                             </td>
                                             <td className="px-8 py-5">
                                                 <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest w-fit ${statusColors[order.status] || ''}`}>
-                                                    <StatusIcon className={`w-3 h-3 ${order.status === 'PAID' ? 'animate-spin' : ''}`} />
+                                                    <StatusIcon className="w-3 h-3" />
                                                     {order.status}
                                                 </div>
                                             </td>
                                             <td className="px-8 py-5 text-right" onClick={(e) => e.stopPropagation()}>
-                                                <select
-                                                    value={order.status}
-                                                    onChange={(e) => handleUpdateStatus(order.id, e.target.value)}
-                                                    className="text-xs font-bold bg-gray-50 border-none rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                                                >
-                                                    <option value="PENDING">Pending</option>
-                                                    <option value="PAID">Paid</option>
-                                                    <option value="SHIPPED">Shipped</option>
-                                                    <option value="DELIVERED">Delivered</option>
-                                                    <option value="CANCELLED">Cancelled</option>
-                                                </select>
+                                                <div className="flex gap-1.5 justify-end">
+                                                    {['ORDER', 'SHIPPED', 'DELIVERED'].map((s) => (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => order.status !== s && requestStatusUpdate(order.id, s)}
+                                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                                order.status === s
+                                                                ? 'bg-dark text-white shadow-md cursor-default'
+                                                                : 'bg-gray-50 text-dark/60 hover:bg-gray-100 border border-gray-100'
+                                                            }`}
+                                                        >
+                                                            {s}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </td>
                                         </tr>
                                     )
@@ -268,9 +286,18 @@ const OrdersAdmin = () => {
                                             <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest flex items-center gap-2">
                                                 <MapPin className="w-3 h-3" /> Shipping Address
                                             </h4>
-                                            <p className="text-sm font-medium text-gray-600 leading-relaxed italic">
-                                                {selectedOrder.shippingAddress || 'No address provided'}
-                                            </p>
+                                            <div className="text-sm font-medium text-gray-600 leading-relaxed italic flex flex-col">
+                                                {selectedOrder.houseNo ? (
+                                                    <>
+                                                        <span>{selectedOrder.houseNo}, {selectedOrder.street}</span>
+                                                        {selectedOrder.landmark && <span>{selectedOrder.landmark}</span>}
+                                                        <span>{selectedOrder.area}, {selectedOrder.district}</span>
+                                                        <span>{selectedOrder.state}, {selectedOrder.country} - {selectedOrder.pincode}</span>
+                                                    </>
+                                                ) : (
+                                                    <span>{selectedOrder.shippingAddress || 'No address provided'}</span>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div className="flex flex-col gap-4">
@@ -293,7 +320,7 @@ const OrdersAdmin = () => {
                                                 <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50/50 rounded-3xl border border-gray-100/50">
                                                     <div className="w-16 h-16 rounded-2xl bg-white overflow-hidden shadow-sm flex-shrink-0">
                                                         {item.product.imageUrl ? (
-                                                            <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                                                            <img src={resolveImageUrl(item.product.imageUrl)} alt={item.product.name} className="w-full h-full object-cover" />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center text-gray-200">
                                                                 <Package className="w-8 h-8" />
@@ -305,8 +332,8 @@ const OrdersAdmin = () => {
                                                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Qty: {item.quantity}</span>
                                                     </div>
                                                     <div className="text-right">
-                                                        <span className="text-sm font-black text-dark">${(item.price * item.quantity).toFixed(2)}</span>
-                                                        <p className="text-[10px] font-medium text-gray-400">${item.price.toFixed(2)} / unit</p>
+                                                        <span className="text-xs font-black text-dark italic">₹{(item.price * item.quantity).toFixed(2)}</span>
+                                                        <p className="text-[10px] font-medium text-gray-400">₹{item.price.toFixed(2)} / unit</p>
                                                     </div>
                                                 </div>
                                             ))}
@@ -314,7 +341,7 @@ const OrdersAdmin = () => {
 
                                         <div className="mt-4 pt-6 border-t border-gray-100 flex justify-between items-center">
                                             <span className="text-sm font-black text-gray-400 uppercase tracking-[0.2em]">Order Subtotal</span>
-                                            <span className="text-3xl font-black text-dark tracking-tighter">${selectedOrder.totalAmount.toFixed(2)}</span>
+                                            <span className="text-xl font-black text-dark tracking-tighter">₹{selectedOrder.totalAmount.toFixed(2)}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -324,13 +351,13 @@ const OrdersAdmin = () => {
                             <div className="p-8 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Update Lifecycle Status</p>
                                 <div className="flex gap-3">
-                                    {['PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'].map((s) => (
+                                    {['ORDER', 'SHIPPED', 'DELIVERED'].map((s) => (
                                         <button
                                             key={s}
-                                            onClick={() => handleUpdateStatus(selectedOrder.id, s)}
+                                            onClick={() => selectedOrder.status !== s && requestStatusUpdate(selectedOrder.id, s)}
                                             className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                                                 selectedOrder.status === s 
-                                                ? 'bg-dark text-white shadow-lg' 
+                                                ? 'bg-dark text-white shadow-lg cursor-default' 
                                                 : 'bg-white text-dark hover:bg-gray-100 border border-gray-200'
                                             }`}
                                         >
@@ -338,6 +365,51 @@ const OrdersAdmin = () => {
                                         </button>
                                     ))}
                                 </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+
+            {/* Confirmation Modal */}
+            <AnimatePresence>
+                {confirmModal && (
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-dark/30 backdrop-blur-sm"
+                            onClick={() => setConfirmModal(null)}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative bg-white rounded-[32px] shadow-2xl p-10 w-full max-w-md flex flex-col items-center gap-6"
+                        >
+                            <div className="w-16 h-16 rounded-full bg-amber-50 flex items-center justify-center">
+                                <AlertTriangle className="w-8 h-8 text-amber-500" />
+                            </div>
+                            <div className="flex flex-col items-center gap-2">
+                                <h3 className="text-xl font-black text-dark tracking-tight">Confirm Status Change</h3>
+                                <p className="text-sm text-gray-400 font-medium text-center">
+                                    Update this order to <span className="font-black text-dark">{confirmModal.newStatus}</span>?
+                                </p>
+                            </div>
+                            <div className="flex gap-3 w-full">
+                                <button
+                                    onClick={() => setConfirmModal(null)}
+                                    className="flex-1 py-3.5 bg-gray-100 text-dark rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-gray-200 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmStatusUpdate}
+                                    className="flex-1 py-3.5 bg-dark text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary transition-all shadow-lg"
+                                >
+                                    Confirm
+                                </button>
                             </div>
                         </motion.div>
                     </div>

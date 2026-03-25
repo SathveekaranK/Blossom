@@ -6,14 +6,14 @@ import {
     markAsRead,
     markAllAsRead,
 } from '../controllers/subscriptionController.js';
-import { authenticate } from '../middleware/authMiddleware.js';
+import { requireAuth } from '../middleware/authMiddleware.js';
 
 const router = Router();
 
-router.post('/toggle', authenticate, toggleSubscription);
-router.get('/status', authenticate, getSubscriptionStatus);
-router.get('/notifications', authenticate, getNotifications);
-router.put('/notifications/:id/read', authenticate, markAsRead);
-router.put('/notifications/read-all', authenticate, markAllAsRead);
+router.post('/toggle', requireAuth, toggleSubscription);
+router.get('/status', requireAuth, getSubscriptionStatus);
+router.get('/notifications', requireAuth, getNotifications);
+router.put('/notifications/:id/read', requireAuth, markAsRead);
+router.put('/notifications/read-all', requireAuth, markAllAsRead);
 
 export default router;

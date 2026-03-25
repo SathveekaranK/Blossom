@@ -1,4 +1,4 @@
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 // Subscribe / Unsubscribe current user
 export const toggleSubscription = async (req, res) => {
     try {

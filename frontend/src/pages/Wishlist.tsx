@@ -1,12 +1,40 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useWishlistStore } from '../store/useWishlistStore';
 import { useCartStore } from '../store/useCartStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { ShoppingBag, X, Heart, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { resolveImageUrl } from '../utils/imageUtils';
 
 const Wishlist = () => {
-    const { items, removeItem } = useWishlistStore();
+    const { items, toggleItem, isLoading } = useWishlistStore();
     const { addItem: addToCart } = useCartStore();
+    const { isAuthenticated } = useAuthStore();
+    const navigate = useNavigate();
+
+    const handleRemove = (item: any) => {
+        if (!isAuthenticated) {
+            navigate('/login');
+            return;
+        }
+        toggleItem(item);
+    };
+
+    const handleAddToCart = (item: any) => {
+        if (!isAuthenticated) {
+            navigate(`/login?redirect=add-to-cart&productId=${item.id}`);
+            return;
+        }
+        addToCart(item);
+    };
+
+    if (isLoading && items.length === 0) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            </div>
+        );
+    }
 
     if (items.length === 0) {
         return (
@@ -60,29 +88,35 @@ const Wishlist = () => {
                             className="group flex flex-col p-8 bg-gray-50 rounded-[50px] relative overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-black/5"
                         >
                             <button
-                                onClick={() => removeItem(item.id)}
+                                onClick={() => handleRemove(item)}
                                 className="absolute top-8 right-8 w-10 h-10 rounded-full bg-white flex items-center justify-center text-dark/40 hover:text-red-500 transition-colors z-10 shadow-sm"
                             >
                                 <X className="w-5 h-5" />
                             </button>
 
                             <Link to={`/products/${item.slug}`} className="relative aspect-[4/5] rounded-[40px] overflow-hidden mb-8 shadow-xl shadow-black/5 flex items-center justify-center">
-                                <img
-                                    src={item.imageUrl}
-                                    alt={item.name}
-                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
-                                />
+                                {item.imageUrl ? (
+                                    <img
+                                        src={resolveImageUrl(item.imageUrl)}
+                                        alt={item.name}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full bg-light flex items-center justify-center text-gray-200">
+                                        <ShoppingBag className="w-16 h-16" />
+                                    </div>
+                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-dark/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             </Link>
 
                             <div className="flex flex-col gap-2 mb-8">
                                 <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">{item.category?.name || 'Skincare'}</span>
                                 <h2 className="text-2xl font-black text-dark tracking-tight leading-tight">{item.name}</h2>
-                                <span className="text-lg font-black text-dark/40 tracking-tighter font-serif italic">${item.price}</span>
+                                <span className="text-lg font-black text-dark/40 tracking-tighter font-serif italic">₹{item.price}</span>
                             </div>
 
                             <button
-                                onClick={() => addToCart({ ...item, quantity: 1, productId: item.id })}
+                                onClick={() => handleAddToCart(item)}
                                 className="w-full py-5 bg-white rounded-3xl text-dark font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-dark hover:text-white transition-all duration-500 shadow-sm"
                             >
                                 <ShoppingBag className="w-4 h-4" />

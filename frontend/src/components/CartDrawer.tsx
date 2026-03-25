@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
 import { Link } from 'react-router-dom';
+import { resolveImageUrl } from '../utils/imageUtils';
 
 interface CartDrawerProps {
     isOpen: boolean;
@@ -81,7 +82,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                                     >
                                         <div className="w-24 h-32 rounded-3xl overflow-hidden bg-light flex-shrink-0 shadow-sm">
                                             {item.imageUrl ? (
-                                                <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                                <img src={resolveImageUrl(item.imageUrl)} alt={item.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-gray-200">
                                                     <Package className="w-8 h-8" />
@@ -118,7 +119,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                                                         <Plus className="w-3 h-3" />
                                                     </button>
                                                 </div>
-                                                <span className="font-black text-dark text-sm">${(item.price * item.quantity).toFixed(2)}</span>
+                                                <span className="font-black text-dark">₹{(item.price * item.quantity).toFixed(2)}</span>
                                             </div>
                                         </div>
                                     </motion.div>
@@ -132,7 +133,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                                 <div className="flex flex-col gap-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Subtotal</span>
-                                        <span className="font-black text-dark text-lg">${subtotal.toFixed(2)}</span>
+                                        <span className="text-4xl font-black text-dark tracking-tighter">₹{subtotal.toFixed(2)}</span>
                                     </div>
                                     <div className="flex items-center gap-2 text-[10px] font-bold text-secondary bg-secondary/10 px-4 py-2 rounded-xl w-fit">
                                         <ShieldCheck className="w-3 h-3" />

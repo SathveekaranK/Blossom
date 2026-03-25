@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import api from '../api/api';
 
 interface WishlistItem {
     id: string;
@@ -12,37 +12,47 @@ interface WishlistItem {
 
 interface WishlistStore {
     items: WishlistItem[];
-    addItem: (item: WishlistItem) => void;
-    removeItem: (id: string) => void;
+    isLoading: boolean;
+    fetchWishlist: () => Promise<void>;
+    toggleItem: (item: WishlistItem) => Promise<void>;
     isInWishlist: (id: string) => boolean;
-    toggleItem: (item: WishlistItem) => void;
+    clearWishlist: () => void;
 }
 
-export const useWishlistStore = create<WishlistStore>()(
-    persist(
-        (set, get) => ({
-            items: [],
-            addItem: (item) => {
-                if (!get().items.some((i) => i.id === item.id)) {
-                    set({ items: [...get().items, item] });
-                }
-            },
-            removeItem: (id) => {
-                set({ items: get().items.filter((i) => i.id !== id) });
-            },
-            isInWishlist: (id) => {
-                return get().items.some((i) => i.id === id);
-            },
-            toggleItem: (item) => {
-                if (get().isInWishlist(item.id)) {
-                    get().removeItem(item.id);
-                } else {
-                    get().addItem(item);
-                }
-            },
-        }),
-        {
-            name: 'blossom-wishlist-storage',
+export const useWishlistStore = create<WishlistStore>((set, get) => ({
+    items: [],
+    isLoading: false,
+
+    fetchWishlist: async () => {
+        set({ isLoading: true });
+        try {
+            const res = await api.get('/wishlist');
+            set({ items: res.data.products, isLoading: false });
+        } catch (error) {
+            console.error('Failed to fetch wishlist:', error);
+            set({ isLoading: false });
         }
-    )
-);
+    },
+
+    toggleItem: async (item) => {
+        try {
+            const res = await api.post('/wishlist/toggle', { productId: item.id });
+            
+            if (res.data.status === 'added') {
+                set({ items: [...get().items, item] });
+            } else {
+                set({ items: get().items.filter((i) => i.id !== item.id) });
+            }
+        } catch (error) {
+            console.error('Failed to toggle wishlist:', error);
+        }
+    },
+
+    isInWishlist: (id) => {
+        return get().items.some((i) => i.id === id);
+    },
+
+    clearWishlist: () => {
+        set({ items: [] });
+    }
+}));

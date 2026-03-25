@@ -1,5 +1,5 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
@@ -32,7 +32,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string;
         const { status } = req.body;
-        const validStatuses = ['PENDING', 'PAID', 'SHIPPED', 'DELIVERED', 'CANCELLED'];
+        const validStatuses = ['ORDER', 'SHIPPED', 'DELIVERED'];
         if (!validStatuses.includes(status)) {
             return res.status(400).json({ error: 'Invalid status' });
         }
@@ -89,6 +89,7 @@ export const getMyOrders = async (req: any, res: Response) => {
         const orders = await prisma.order.findMany({
             where: { userId },
             include: {
+                user: { select: { name: true, email: true } },
                 items: {
                     include: { product: true },
                 },
@@ -121,10 +122,24 @@ export const getOrderById = async (req: any, res: Response) => {
 
 // Customer: Create order and Stripe checkout session
 export const createCheckoutSession = async (req: any, res: Response) => {
+    if (!req.user) {
+        return res.status(401).json({
+            success: false,
+            message: 'Authentication required before checkout',
+        });
+    }
+
     try {
         const userId = req.user.userId;
-        const { items, shippingAddress } = req.body;
+        const { items, shippingAddress, phone, houseNo, street, landmark, area, district, state, country, pincode } = req.body;
         // items: [{ productId, quantity }]
+        
+        if (phone && phone.trim().length >= 10) {
+            await prisma.user.update({
+                where: { id: userId },
+                data: { phone: phone.trim() }
+            });
+        }
 
         if (!items || items.length === 0) {
             return res.status(400).json({ error: 'No items in order' });
@@ -170,13 +185,21 @@ export const createCheckoutSession = async (req: any, res: Response) => {
             });
         }
 
-        // Create the order in PENDING state
+        // Create the order in ORDER state
         const order = await prisma.order.create({
             data: {
                 userId,
                 totalAmount,
-                status: 'PENDING',
+                status: 'ORDER',
                 shippingAddress: shippingAddress || null,
+                houseNo,
+                street,
+                landmark,
+                area,
+                district,
+                state,
+                country,
+                pincode,
                 items: {
                     create: orderItems,
                 },
@@ -185,11 +208,7 @@ export const createCheckoutSession = async (req: any, res: Response) => {
 
         // Try Stripe session — if Stripe key is not configured, simulate
         if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_placeholder') {
-            // Simulate payment: mark order as PAID immediately
-            await prisma.order.update({
-                where: { id: order.id },
-                data: { status: 'PAID' },
-            });
+            // Simulate payment: keep order as ORDER
 
             // Deduct stock
             for (const item of orderItems) {
@@ -263,12 +282,7 @@ export const stripeWebhook = async (req: Request, res: Response) => {
         if (orderId) {
             // Prevent duplicate processing
             const order = await prisma.order.findUnique({ where: { id: orderId } });
-            if (order && order.status === 'PENDING') {
-                await prisma.order.update({
-                    where: { id: orderId },
-                    data: { status: 'PAID' },
-                });
-
+            if (order && order.status === 'ORDER') {
                 // Deduct stock
                 const items = await prisma.orderItem.findMany({ where: { orderId } });
                 for (const item of items) {
@@ -294,7 +308,6 @@ export const stripeWebhook = async (req: Request, res: Response) => {
 export const getDashboardStats = async (req: Request, res: Response) => {
     try {
         const totalRevenue = await prisma.order.aggregate({
-            where: { status: { not: 'CANCELLED' } },
             _sum: { totalAmount: true },
         });
 

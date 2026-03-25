@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
     ShoppingBag,
@@ -17,8 +17,10 @@ import {
     Share2
 } from 'lucide-react';
 import api from '../api/api';
+import { useAuthStore } from '../store/useAuthStore';
 import { useCartStore } from '../store/useCartStore';
 import { useWishlistStore } from '../store/useWishlistStore';
+import { resolveImageUrl } from '../utils/imageUtils';
 
 interface Product {
     id: string;
@@ -28,6 +30,7 @@ interface Product {
     stock: number;
     slug: string;
     imageUrl?: string;
+    rating?: number;
     category?: { name: string; slug: string; };
 }
 
@@ -56,7 +59,14 @@ const ProductDetail = () => {
         }
     };
 
+    const { isAuthenticated } = useAuthStore();
+    const navigate = useNavigate();
+
     const handleAddToCart = () => {
+        if (!isAuthenticated) {
+            navigate(`/login?redirect=add-to-cart&productId=${product?.id}&quantity=${quantity}`);
+            return;
+        }
         if (product) {
             addItem(product, quantity);
             setIsSuccess(true);
@@ -116,7 +126,7 @@ const ProductDetail = () => {
                 >
                     {product.imageUrl ? (
                         <img
-                            src={product.imageUrl}
+                            src={resolveImageUrl(product.imageUrl)}
                             alt={product.name}
                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
                         />
@@ -129,7 +139,7 @@ const ProductDetail = () => {
                     <div className="absolute top-10 left-10 flex flex-col gap-3">
                         <div className="bg-white/90 backdrop-blur px-5 py-2 rounded-full shadow-lg flex items-center gap-2">
                             <Star className="w-4 h-4 fill-amber-400 stroke-amber-400" />
-                            <span className="font-black text-sm text-dark">4.9/5</span>
+                            <span className="font-black text-sm text-dark">{(product.rating || 0).toFixed(1)}/5</span>
                         </div>
                         <div className="bg-primary text-white px-5 py-2 rounded-full shadow-lg flex items-center gap-2">
                             <Leaf className="w-4 h-4" />
@@ -146,11 +156,16 @@ const ProductDetail = () => {
                 >
                     <div className="flex flex-col gap-4">
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-primary">{product.category?.name}</span>
+                            <Link 
+                                to={`/shop?category=${product.category?.slug}`}
+                                className="text-[10px] font-black uppercase tracking-[0.4em] text-primary hover:text-dark transition-colors"
+                            >
+                                {product.category?.name}
+                            </Link>
                         </div>
                         <h1 className="text-5xl font-black text-dark tracking-tight leading-tight">{product.name}.</h1>
                         <div className="flex items-center gap-6">
-                            <span className="text-3xl font-black text-dark/70">${Number(product.price).toFixed(2)}</span>
+                            <span className="text-5xl font-black text-dark tracking-tighter">₹{product.price.toFixed(2)}</span>
                             <div className="h-4 w-px bg-gray-200" />
                             <div className={`text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5 ${product.stock > 0 ? 'text-secondary' : 'text-red-500'}`}>
                                 {product.stock > 0 ? <CheckCircle2 className="w-4 h-4" /> : <XCircle className="w-4 h-4" />}
@@ -199,7 +214,13 @@ const ProductDetail = () => {
                                 </button>
                             </div>
                             <button
-                                onClick={() => product && toggleItem(product)}
+                                onClick={() => {
+                                    if (!isAuthenticated) {
+                                        navigate('/login');
+                                        return;
+                                    }
+                                    product && toggleItem(product);
+                                }}
                                 className={`p-5 border-2 rounded-full transition-all transform hover:scale-105 active:scale-95 group ${isInWishlist(product?.id || '') ? 'bg-primary border-primary text-white shadow-lg shadow-primary/20' : 'border-gray-100 text-dark hover:border-dark'
                                     }`}
                             >
@@ -209,23 +230,24 @@ const ProductDetail = () => {
 
                         <button
                             onClick={handleAddToCart}
-                            disabled={product.stock === 0}
-                            className="group relative w-full py-5 bg-dark text-white rounded-[40px] font-black text-sm uppercase tracking-widest shadow-2xl shadow-black/10 hover:bg-primary transition-all duration-300 flex items-center justify-center gap-4 overflow-hidden disabled:bg-gray-200 disabled:shadow-none"
+                            disabled={isSuccess || product?.stock === 0}
+                            className={`flex-1 h-[60px] rounded-3xl font-black text-xs uppercase tracking-[0.2em] transition-all duration-500 shadow-xl flex items-center justify-center gap-3 ${isSuccess ? 'bg-secondary text-white' : product?.stock === 0 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-dark text-white hover:bg-primary shadow-black/10'
+                                }`}
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                             {isSuccess ? (
-                                <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    className="flex items-center gap-2"
-                                >
-                                    <CheckCircle2 className="w-5 h-5 text-secondary" />
-                                    <span>Essence Added.</span>
-                                </motion.div>
+                                <>
+                                    <CheckCircle2 className="w-5 h-10" />
+                                    <span>Added to Collection</span>
+                                </>
+                            ) : product?.stock === 0 ? (
+                                <>
+                                    <XCircle className="w-5 h-10" />
+                                    <span>Out of Stock</span>
+                                </>
                             ) : (
                                 <>
-                                    <ShoppingBag className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                                    <span>Incorporate into Routine — ${(product.price * quantity).toFixed(2)}</span>
+                                    <ShoppingBag className="w-5 h-10" />
+                                    <span>Add to Cart</span>
                                 </>
                             )}
                         </button>

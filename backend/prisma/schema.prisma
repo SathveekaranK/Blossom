@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -12,19 +12,25 @@ model User {
   email         String         @unique
   password      String
   name          String
+  phone         String?
   role          String         @default("CUSTOMER")
   isSubscribed  Boolean        @default(false)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
+  otp           String?
+  otpExpiry     DateTime?
+  isVerified    Boolean        @default(false)
   cart          Cart?
   orders        Order[]
   notifications Notification[]
+  wishlist      Wishlist[]
 }
 
 model Category {
   id        String    @id @default(uuid())
   name      String
   slug      String    @unique
+  imageUrl  String?
   products  Product[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -38,11 +44,13 @@ model Product {
   stock       Int         @default(0)
   slug        String      @unique
   imageUrl    String?
+  rating      Float       @default(0.0)
   isActive    Boolean     @default(true)
   category    Category    @relation(fields: [categoryId], references: [id])
   categoryId  String
   cartItems   CartItem[]
   orderItems  OrderItem[]
+  wishlist    Wishlist[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
@@ -72,8 +80,16 @@ model Order {
   user            User        @relation(fields: [userId], references: [id])
   userId          String
   totalAmount     Float
-  status          String      @default("PENDING")
+  status          String      @default("ORDER")
   shippingAddress String?
+  houseNo         String?
+  street          String?
+  landmark        String?
+  area            String?
+  district        String?
+  state           String?
+  country         String?
+  pincode         String?
   paymentIntentId String?     @unique
   items           OrderItem[]
   createdAt       DateTime    @default(now())
@@ -102,4 +118,16 @@ model Notification {
   isRead    Boolean  @default(false)
   productId String?
   createdAt DateTime @default(now())
+}
+
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+
+  user      User     @relation(fields: [userId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+
+  @@unique([userId, productId])
 }

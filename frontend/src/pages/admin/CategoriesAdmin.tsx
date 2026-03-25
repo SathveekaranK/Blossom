@@ -15,6 +15,7 @@ interface Category {
     id: string;
     name: string;
     slug: string;
+    imageUrl?: string;
     _count?: {
         products: number;
     };
@@ -27,6 +28,7 @@ const CategoriesAdmin = () => {
     const [editingCategory, setEditingCategory] = useState<Category | null>(null);
     const [name, setName] = useState('');
     const [slug, setSlug] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -49,6 +51,7 @@ const CategoriesAdmin = () => {
         setEditingCategory(category);
         setName(category ? category.name : '');
         setSlug(category ? category.slug : '');
+        setImageUrl(category?.imageUrl || '');
         setError('');
         setIsModalOpen(true);
     };
@@ -60,9 +63,9 @@ const CategoriesAdmin = () => {
 
         try {
             if (editingCategory) {
-                await api.put(`/categories/${editingCategory.id}`, { name, slug });
+                await api.put(`/categories/${editingCategory.id}`, { name, slug, imageUrl });
             } else {
-                await api.post('/categories', { name, slug });
+                await api.post('/categories', { name, slug, imageUrl });
             }
             setIsModalOpen(false);
             fetchCategories();
@@ -118,10 +121,10 @@ const CategoriesAdmin = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-gray-50/30">
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Category Name</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Slug Identifier</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Products</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right">Actions</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[250px]">Category Name</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[150px]">Slug Identifier</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 min-w-[120px]">Products</th>
+                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right min-w-[120px]">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-50">
@@ -239,6 +242,17 @@ const CategoriesAdmin = () => {
                                             placeholder="luxury-skincare"
                                         />
                                     </div>
+                                </div>
+
+                                <div className="flex flex-col gap-2">
+                                    <label className="text-[10px] font-black text-dark/40 ml-4 uppercase tracking-[0.2em]">Image URL</label>
+                                    <input
+                                        type="text"
+                                        value={imageUrl}
+                                        onChange={(e) => setImageUrl(e.target.value)}
+                                        className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                        placeholder="https://images.unsplash.com/..."
+                                    />
                                 </div>
 
                                 {error && (

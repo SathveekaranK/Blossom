@@ -1,0 +1,47 @@
+{
+  "products": [
+    {
+      "id": "9b7d1a39-22aa-41ba-8300-8186e92ed90c",
+      "name": "sdfghjk",
+      "description": "sdftyjkmnbfrtyuikbfryuiop",
+      "price": 4567,
+      "stock": 2,
+      "slug": "sdfghjk",
+      "imageUrl": "https://izza-collections.s3.eu-north-1.amazonaws.com/products/image-1774375273234-142196363.png",
+      "isActive": false,
+      "categoryId": "6bd946e4-3f88-427e-82ae-904ffcb7215f",
+      "createdAt": "2026-03-24T18:01:15.024Z",
+      "updatedAt": "2026-03-24T18:07:32.881Z",
+      "category": {
+        "id": "6bd946e4-3f88-427e-82ae-904ffcb7215f",
+        "name": "Skin care",
+        "slug": "skin-care",
+        "createdAt": "2026-03-24T09:13:12.132Z",
+        "updatedAt": "2026-03-24T09:13:12.132Z"
+      }
+    },
+    {
+      "id": "ae2d20e0-9854-4e22-a61f-19c895d9b811",
+      "name": "face cream",
+      "description": "This protect use in face",
+      "price": 77,
+      "stock": 5,
+      "slug": "face-cream",
+      "imageUrl": "https://izza-collections.s3.eu-north-1.amazonaws.com/products/image-1774346914532-504032914.webp",
+      "isActive": true,
+      "categoryId": "6bd946e4-3f88-427e-82ae-904ffcb7215f",
+      "createdAt": "2026-03-24T10:08:35.986Z",
+      "updatedAt": "2026-03-24T18:07:34.296Z",
+      "category": {
+        "id": "6bd946e4-3f88-427e-82ae-904ffcb7215f",
+        "name": "Skin care",
+        "slug": "skin-care",
+        "createdAt": "2026-03-24T09:13:12.132Z",
+        "updatedAt": "2026-03-24T09:13:12.132Z"
+      }
+    }
+  ],
+  "total": 2,
+  "page": 1,
+  "pages": 1
+}

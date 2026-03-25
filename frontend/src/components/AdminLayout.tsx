@@ -8,17 +8,16 @@ import {
     Settings,
     ArrowLeft,
     Search,
-    Plus,
-    ChevronDown,
-    BarChart3
+    BarChart3,
+    Menu,
+    X as CloseIcon
 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useState } from 'react';
 
 const AdminLayout = () => {
     const location = useLocation();
-    const [isQuickActionOpen, setIsQuickActionOpen] = useState(false);
-    const dropdownRef = useRef<HTMLDivElement>(null);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const navItems = [
         { name: 'Dashboard', icon: LayoutDashboard, path: '/admin' },
@@ -29,36 +28,41 @@ const AdminLayout = () => {
         { name: 'Users', icon: Users, path: '/admin/users' },
     ];
 
-    const quickActions = [
-        { name: 'Add New Product', path: '/admin/products', icon: Package },
-        { name: 'Add Category', path: '/admin/categories', icon: Layers },
-        { name: 'View Orders', path: '/admin/orders', icon: ShoppingCart },
-        { name: 'Manage Users', path: '/admin/users', icon: Users },
-    ];
 
-    // Close dropdown on outside click
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsQuickActionOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
 
     return (
-        <div className="flex min-h-screen bg-gray-50/50">
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-gray-100 flex flex-col p-6 gap-8 z-40">
-                <Link to="/" className="flex items-center gap-3 px-2 mb-4 group">
-                    <div className="w-10 h-10 rounded-2xl bg-dark text-white flex items-center justify-center group-hover:bg-primary transition-all duration-300">
-                        <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-                    </div>
-                    <span className="font-black text-xl tracking-tight">Main Site</span>
-                </Link>
+        <div className="flex min-h-screen bg-gray-50/50" style={{ scrollbarGutter: 'stable' }}>
+            {/* Mobile Sidebar Overlay */}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="fixed inset-0 bg-dark/40 backdrop-blur-sm z-50 lg:hidden"
+                    />
+                )}
+            </AnimatePresence>
 
-                <div className="flex flex-col gap-2">
+            {/* Sidebar */}
+            <aside className={`fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-gray-100 flex flex-col p-6 gap-8 z-[60] transition-transform duration-300 lg:translate-x-0 overflow-y-auto custom-scrollbar ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="flex items-center justify-between lg:block shrink-0">
+                    <Link to="/" className="flex items-center gap-3 px-2 group">
+                        <div className="w-10 h-10 rounded-2xl bg-dark text-white flex items-center justify-center group-hover:bg-primary transition-all duration-300">
+                            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                        </div>
+                        <span className="font-black text-xl tracking-tight">Main Site</span>
+                    </Link>
+                    <button 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="lg:hidden p-2 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                        <CloseIcon className="w-5 h-5 text-gray-400" />
+                    </button>
+                </div>
+
+                <div className="flex flex-col gap-2 shrink-0">
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300 px-4 mb-2">Management</span>
                     {navItems.map((item) => (
                         <Link
@@ -75,7 +79,7 @@ const AdminLayout = () => {
                     ))}
                 </div>
 
-                <div className="mt-auto pt-6 border-t border-gray-100 flex flex-col gap-2">
+                <div className="mt-auto pt-6 border-t border-gray-100 flex flex-col gap-2 shrink-0">
                     <Link
                         to="/admin/settings"
                         className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all duration-300 ${location.pathname === '/admin/settings'
@@ -90,62 +94,45 @@ const AdminLayout = () => {
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 ml-72 p-10">
-                <header className="flex items-center justify-between mb-12">
-                    <div className="flex flex-col gap-1">
-                        <h1 className="text-3xl font-black text-dark tracking-tight">Admin Console</h1>
-                        <p className="text-gray-400 font-semibold text-sm">Welcome back. Manage your digital boutique here.</p>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                        <div className="relative group">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                            <input
-                                type="text"
-                                placeholder="Search dashboard..."
-                                className="pl-11 pr-6 py-2.5 bg-white border border-gray-100 rounded-full text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all w-64"
-                            />
-                        </div>
-                        <div className="relative" ref={dropdownRef}>
+            <main className="flex-1 lg:pl-72 flex flex-col min-h-screen min-w-0 overflow-hidden">
+                <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100 w-full">
+                    <div className="max-w-7xl mx-auto px-6 lg:px-10 py-6 flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 shrink-0">
                             <button
-                                onClick={() => setIsQuickActionOpen(!isQuickActionOpen)}
-                                className="flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-full font-bold shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all hover:scale-105"
+                                onClick={() => setIsMobileMenuOpen(true)}
+                                className="lg:hidden p-2 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors"
                             >
-                                <Plus className="w-4 h-4" />
-                                <span>Quick Action</span>
-                                <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isQuickActionOpen ? 'rotate-180' : ''}`} />
+                                <Menu className="w-6 h-6 text-dark" />
                             </button>
+                            <div className="flex flex-col gap-0.5">
+                                <h1 className="text-xl lg:text-3xl font-black text-dark tracking-tight">Admin Console</h1>
+                                <p className="hidden md:block text-gray-400 font-semibold text-sm">Welcome back. Manage your digital boutique here.</p>
+                                <p className="md:hidden text-[10px] font-black uppercase tracking-widest text-primary">Live Dashboard</p>
+                            </div>
+                        </div>
 
-                            {isQuickActionOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-gray-100 p-2 z-50"
-                                >
-                                    {quickActions.map((action) => (
-                                        <Link
-                                            key={action.name}
-                                            to={action.path}
-                                            onClick={() => setIsQuickActionOpen(false)}
-                                            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 text-sm font-bold text-dark transition-colors"
-                                        >
-                                            <action.icon className="w-4 h-4 text-primary" />
-                                            {action.name}
-                                        </Link>
-                                    ))}
-                                </motion.div>
-                            )}
+                        <div className="flex items-center gap-4">
+                            <div className="relative group">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search dashboard..."
+                                    className="pl-11 pr-6 py-2.5 bg-white border border-gray-100 rounded-full text-sm font-medium focus:ring-4 focus:ring-primary/10 focus:outline-none transition-all w-64"
+                                />
+                            </div>
                         </div>
                     </div>
                 </header>
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
-                    <Outlet />
-                </motion.div>
+                <div className="flex-1 p-6 lg:p-10 max-w-7xl mx-auto w-full">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                    >
+                        <Outlet />
+                    </motion.div>
+                </div>
             </main>
         </div>
     );

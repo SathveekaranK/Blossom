@@ -1,4 +1,4 @@
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 import { z } from 'zod';
 import { notifySubscribers } from './subscriptionController.js';
 const productSchema = z.object({

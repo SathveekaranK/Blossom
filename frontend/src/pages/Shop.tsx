@@ -10,12 +10,14 @@ import {
     X,
     ChevronDown,
     Check,
-    DollarSign,
+    IndianRupee,
     Layers
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import api from '../api/api';
+import { useAuthStore } from '../store/useAuthStore';
 import { useCartStore } from '../store/useCartStore';
+import { resolveImageUrl } from '../utils/imageUtils';
 
 interface Category {
     id: string;
@@ -30,6 +32,8 @@ interface Product {
     slug: string;
     imageUrl?: string;
     description: string;
+    stock: number;
+    rating?: number;
     category?: Category;
 }
 
@@ -40,50 +44,62 @@ const SORT_OPTIONS = [
 ];
 
 import { useWishlistStore } from '../store/useWishlistStore';
-import { useSearchParams } from 'react-router-dom';
 
 const Shop = () => {
     const { addItem } = useCartStore();
     const { toggleItem, isInWishlist } = useWishlistStore();
+    const { isAuthenticated } = useAuthStore();
+    const navigate = useNavigate();
     const [searchParams] = useSearchParams();
+    const currentCategory = searchParams.get('category') || '';
+    const currentSort = searchParams.get('sort') || 'recent';
+    const currentMaxPrice = parseInt(searchParams.get('maxPrice') || '10000');
 
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState(searchParams.get('search') || '');
-    const [selectedCategory, setSelectedCategory] = useState<string>('');
-    const [sortBy, setSortBy] = useState('recent');
-    const [priceRange, setPriceRange] = useState(1000);
+    const [priceRange, setPriceRange] = useState(currentMaxPrice);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
 
     const sortRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const querySearch = searchParams.get('search');
-        const queryCategory = searchParams.get('category');
-
-        if (queryCategory) {
-            setSelectedCategory(queryCategory);
-        }
-
-        if (querySearch) {
-            setSearch(querySearch);
-            fetchProducts(querySearch);
-        } else {
-            fetchInitialData();
-            fetchProducts();
-        }
-    }, [searchParams]);
+        fetchInitialData();
+    }, []);
 
     useEffect(() => {
-        // Only fetch if we're not waiting for searchParams effect
-        if (!searchParams.get('search') && !searchParams.get('category')) {
-            fetchProducts();
-        } else if (selectedCategory || sortBy !== 'recent' || priceRange !== 1000) {
-            fetchProducts();
-        }
-    }, [selectedCategory, sortBy, priceRange]);
+        const timer = setTimeout(() => {
+            const newParams = new URLSearchParams(searchParams);
+            
+            if (search) newParams.set('search', search);
+            else newParams.delete('search');
+            
+            if (priceRange !== 10000) newParams.set('maxPrice', priceRange.toString());
+            else newParams.delete('maxPrice');
+
+            // Only navigate if params actually changed to avoid infinite loop
+            const currentSearch = searchParams.get('search') || '';
+            const currentMax = searchParams.get('maxPrice') || '10000';
+            
+            if (currentSearch !== (search || '') || currentMax !== priceRange.toString()) {
+                navigate(`/shop?${newParams.toString()}`, { replace: true });
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [search, priceRange]);
+
+    useEffect(() => {
+        const urlSearch = searchParams.get('search') || '';
+        const urlMaxPrice = parseInt(searchParams.get('maxPrice') || '10000');
+        
+        if (search !== urlSearch) setSearch(urlSearch);
+        if (priceRange !== urlMaxPrice) setPriceRange(urlMaxPrice);
+        
+        fetchProducts();
+    }, [searchParams]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -104,12 +120,16 @@ const Shop = () => {
         }
     };
 
-    const fetchProducts = async (currentSearch?: string) => {
+    const fetchProducts = async () => {
         setIsLoading(true);
         try {
-            const query = currentSearch || search;
-            let url = `/products?limit=50&sort=${sortBy}&maxPrice=${priceRange}`;
-            if (selectedCategory) url += `&category=${selectedCategory}`;
+            const query = searchParams.get('search') || '';
+            const category = searchParams.get('category') || '';
+            const sort = searchParams.get('sort') || 'recent';
+            const maxPrice = searchParams.get('maxPrice') || '10000';
+
+            let url = `/products?limit=50&sort=${sort}&maxPrice=${maxPrice}`;
+            if (category) url += `&category=${category}`;
             if (query) url += `&search=${query}`;
 
             const res = await api.get(url);
@@ -123,10 +143,12 @@ const Shop = () => {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        fetchProducts();
+        const newParams = new URLSearchParams(searchParams);
+        if (search) newParams.set('search', search);
+        else newParams.delete('search');
+        navigate(`/shop?${newParams.toString()}`);
     };
 
-    const currentSortLabel = SORT_OPTIONS.find(opt => opt.value === sortBy)?.label || 'Sort By';
 
     return (
         <div className="min-h-screen bg-white">
@@ -138,7 +160,7 @@ const Shop = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="text-[10px] font-black uppercase tracking-[0.4em] text-primary"
                     >
-                        Spring Selection 2026
+                        Professional Selection
                     </motion.span>
                     <motion.h1
                         initial={{ opacity: 0, y: 10 }}
@@ -188,7 +210,7 @@ const Shop = () => {
                                 className="flex items-center gap-3 bg-gray-50 px-8 py-3 rounded-full hover:bg-gray-100 transition-all group"
                             >
                                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-300 group-hover:text-dark/40 transition-colors">Sort By:</span>
-                                <span className="text-sm font-bold text-dark">{currentSortLabel}</span>
+                                <span className="text-sm font-bold text-dark">{SORT_OPTIONS.find(opt => opt.value === currentSort)?.label || 'Recent'}</span>
                                 <motion.div
                                     animate={{ rotate: isSortOpen ? 180 : 0 }}
                                     transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -210,15 +232,17 @@ const Shop = () => {
                                             <button
                                                 key={option.value}
                                                 onClick={() => {
-                                                    setSortBy(option.value);
+                                                    const newParams = new URLSearchParams(searchParams);
+                                                    newParams.set('sort', option.value);
+                                                    navigate(`/shop?${newParams.toString()}`);
                                                     setIsSortOpen(false);
                                                 }}
                                                 className="w-full flex items-center justify-between px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all group"
                                             >
-                                                <span className={`text-sm font-bold transition-colors ${sortBy === option.value ? 'text-primary' : 'text-dark/60 group-hover:text-dark'}`}>
+                                                <span className={`text-sm font-bold transition-colors ${currentSort === option.value ? 'text-primary' : 'text-dark/60 group-hover:text-dark'}`}>
                                                     {option.label}
                                                 </span>
-                                                {sortBy === option.value && (
+                                                {currentSort === option.value && (
                                                     <motion.div
                                                         initial={{ scale: 0 }}
                                                         animate={{ scale: 1 }}
@@ -252,7 +276,7 @@ const Shop = () => {
                             <p className="text-gray-400 font-medium max-w-xs">We couldn't find any products matching your current criteria. Try adjusting your filters.</p>
                         </div>
                         <button
-                            onClick={() => { setSelectedCategory(''); setSearch(''); }}
+                            onClick={() => { setSearch(''); navigate('/shop'); }}
                             className="text-primary font-black uppercase text-xs tracking-widest border-b-2 border-primary"
                         >
                             Reset All Filters
@@ -278,7 +302,7 @@ const Shop = () => {
                                     <Link to={`/products/${product.slug}`} className="relative aspect-[3/4] overflow-hidden rounded-[40px] shadow-sm hover:shadow-2xl transition-all duration-500">
                                         {product.imageUrl ? (
                                             <img
-                                                src={product.imageUrl}
+                                                src={resolveImageUrl(product.imageUrl)}
                                                 alt={product.name}
                                                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                             />
@@ -292,6 +316,10 @@ const Shop = () => {
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault();
+                                                    if (!isAuthenticated) {
+                                                        navigate('/login');
+                                                        return;
+                                                    }
                                                     toggleItem(product);
                                                 }}
                                                 className={`p-2.5 md:p-3 rounded-full shadow-lg transition-all transform hover:scale-110 ${isInWishlist(product.id) ? 'bg-primary text-white' : 'bg-white text-dark hover:text-primary'
@@ -305,11 +333,16 @@ const Shop = () => {
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault();
+                                                    if (!isAuthenticated) {
+                                                        navigate(`/login?redirect=add-to-cart&productId=${product.id}`);
+                                                        return;
+                                                    }
                                                     addItem(product);
                                                 }}
-                                                className="w-full py-3 md:py-4 bg-white/90 backdrop-blur-md text-dark rounded-2xl md:rounded-3xl font-black text-[10px] md:text-xs uppercase tracking-widest shadow-xl hover:bg-primary hover:text-white transition-all"
+                                                disabled={product.stock === 0}
+                                                className={`w-full py-3 md:py-4 bg-white/90 backdrop-blur-md text-dark rounded-2xl md:rounded-3xl font-black text-[10px] md:text-xs uppercase tracking-widest shadow-xl transition-all ${product.stock === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'}`}
                                             >
-                                                Add to Cart
+                                                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                                             </button>
                                         </div>
                                     </Link>
@@ -319,11 +352,11 @@ const Shop = () => {
                                             <span className="text-[10px] font-black uppercase tracking-widest text-primary">{product.category?.name}</span>
                                             <div className="flex items-center gap-1 text-xs font-bold text-gray-300">
                                                 <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                                                <span>4.8</span>
+                                                <span>{(product.rating || 0).toFixed(1)}</span>
                                             </div>
                                         </div>
                                         <h3 className="text-lg font-black text-dark tracking-tight leading-tight line-clamp-1">{product.name}</h3>
-                                        <span className="font-bold text-dark/70">${Number(product.price).toFixed(2)}</span>
+                                        <span className="font-bold text-dark/70">₹{Number(product.price).toFixed(2)}</span>
                                     </div>
                                 </motion.div>
                             ))}
@@ -373,8 +406,12 @@ const Shop = () => {
                                     </div>
                                     <div className="flex flex-wrap gap-2">
                                         <button
-                                            onClick={() => setSelectedCategory('')}
-                                            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all ${selectedCategory === '' ? 'bg-dark text-white shadow-lg shadow-black/10' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                                            onClick={() => {
+                                                const newParams = new URLSearchParams(searchParams);
+                                                newParams.delete('category');
+                                                navigate(`/shop?${newParams.toString()}`);
+                                            }}
+                                            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all ${currentCategory === '' ? 'bg-dark text-white shadow-lg shadow-black/10' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
                                                 }`}
                                         >
                                             All Rituals
@@ -382,8 +419,12 @@ const Shop = () => {
                                         {categories.map((cat) => (
                                             <button
                                                 key={cat.id}
-                                                onClick={() => setSelectedCategory(cat.slug)}
-                                                className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all ${selectedCategory === cat.slug ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                                                onClick={() => {
+                                                    const newParams = new URLSearchParams(searchParams);
+                                                    newParams.set('category', cat.slug);
+                                                    navigate(`/shop?${newParams.toString()}`);
+                                                }}
+                                                className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all ${currentCategory === cat.slug ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
                                                     }`}
                                             >
                                                 {cat.name}
@@ -396,27 +437,27 @@ const Shop = () => {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center text-dark shadow-sm shadow-primary/20">
-                                                <DollarSign className="w-3 h-3" strokeWidth={3} />
+                                                <IndianRupee className="w-3 h-3" strokeWidth={3} />
                                             </div>
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] text-dark/40">Price Range</span>
                                         </div>
-                                        <span className="text-xs font-black text-primary">${priceRange}</span>
+                                        <span className="text-xs font-black text-primary">₹{priceRange}</span>
                                     </div>
                                     <div className="flex flex-col gap-4 px-2">
                                         <div className="relative h-6 flex items-center">
                                             <input
                                                 type="range"
                                                 min="0"
-                                                max="1000"
-                                                step="10"
+                                                max="10000"
+                                                step="100"
                                                 value={priceRange}
                                                 onChange={(e) => setPriceRange(parseInt(e.target.value))}
                                                 className="blossom-slider cursor-pointer"
                                             />
                                         </div>
                                         <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
-                                            <span>$0</span>
-                                            <span>$1000+</span>
+                                            <span>₹0</span>
+                                            <span>₹10000+</span>
                                         </div>
                                     </div>
                                 </div>
@@ -424,13 +465,18 @@ const Shop = () => {
 
                             <div className="mt-auto flex flex-col gap-3">
                                 <button
-                                    onClick={() => setIsSidebarOpen(false)}
+                                    onClick={() => {
+                                        const newParams = new URLSearchParams(searchParams);
+                                        newParams.set('maxPrice', priceRange.toString());
+                                        navigate(`/shop?${newParams.toString()}`);
+                                        setIsSidebarOpen(false);
+                                    }}
                                     className="w-full py-4 bg-dark text-white rounded-3xl font-black shadow-xl shadow-black/10 hover:bg-primary transition-all duration-300"
                                 >
                                     Apply Filters
                                 </button>
                                 <button
-                                    onClick={() => { setSelectedCategory(''); setSearch(''); setIsSidebarOpen(false); }}
+                                    onClick={() => { setSearch(''); navigate('/shop'); setIsSidebarOpen(false); }}
                                     className="w-full py-4 text-dark font-black text-xs uppercase tracking-widest hover:text-primary transition-all"
                                 >
                                     Reset All

@@ -19,6 +19,8 @@ interface CartStore {
     removeItem: (id: string) => void;
     updateQuantity: (id: string, quantity: number) => void;
     clearCart: () => void;
+    clearLocalCart: () => void;
+    fetchCartFromDB: () => Promise<void>;
     setItems: (items: CartItem[]) => void;
     total: number;
 }
@@ -67,10 +69,7 @@ export const useCartStore = create<CartStore>()(
 
                 if (useAuthStore.getState().isAuthenticated) {
                     try {
-                        // The backend expects the cart item ID, but we only have product ID locally sometimes. 
-                        // It's safer to sync the whole cart.
-                        const currentItems = newItems.map(i => ({ productId: i.id, quantity: i.quantity }));
-                        await api.post('/cart/sync', { items: currentItems });
+                        await api.delete(`/cart/remove-product/${id}`);
                     } catch (e) { console.error('Failed to sync remove item', e); }
                 }
             },
@@ -94,6 +93,31 @@ export const useCartStore = create<CartStore>()(
                     try {
                         await api.delete('/cart/clear');
                     } catch (e) { console.error('Failed to clear cart database', e); }
+                }
+            },
+            clearLocalCart: () => {
+                set({ items: [], total: 0 });
+            },
+            fetchCartFromDB: async () => {
+                if (!useAuthStore.getState().isAuthenticated) return;
+                try {
+                    const res = await api.get('/cart');
+                    const dbCart = res.data;
+                    if (dbCart && dbCart.items) {
+                        const formattedItems = dbCart.items.map((ci: any) => ({
+                            id: ci.product.id,
+                            name: ci.product.name,
+                            price: ci.product.price,
+                            imageUrl: ci.product.imageUrl,
+                            slug: ci.product.slug,
+                            stock: ci.product.stock,
+                            quantity: ci.quantity
+                        }));
+                        const total = formattedItems.reduce((acc: number, item: any) => acc + item.price * item.quantity, 0);
+                        set({ items: formattedItems, total });
+                    }
+                } catch (e) {
+                    console.error('Failed to fetch cart from database', e);
                 }
             },
             setItems: (items) => {

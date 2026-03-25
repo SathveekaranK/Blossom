@@ -1,18 +1,16 @@
 import { useEffect, useState, useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { ArrowRight, Plus, ShieldCheck, Truck, Leaf, Sparkles, Star, ShoppingBag, Eye } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, Plus, Sparkles, Star, ShoppingBag, Eye } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../api/api';
+import { useAuthStore } from '../store/useAuthStore';
 import { useCartStore } from '../store/useCartStore';
+import { resolveImageUrl } from '../utils/imageUtils';
 
-const categories = [
-    { id: 1, name: 'Skin Care', count: 120, image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1974&auto=format&fit=crop', slug: 'skin-care' },
-    { id: 2, name: 'Body Care', count: 95, image: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=2070&auto=format&fit=crop', slug: 'body-care' },
-    { id: 3, name: 'Fragrance', count: 45, image: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1920&auto=format&fit=crop', slug: 'fragrance' },
-    { id: 4, name: 'Best Sellers', count: 150, image: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?q=80&w=1972&auto=format&fit=crop', slug: 'best-sellers' },
-];
 
 const RecentlyAddedCard = ({ product, index, addItem }: { product: any, index: number, addItem: any }) => {
+    const { isAuthenticated } = useAuthStore();
+    const navigate = useNavigate();
     const cardRef = useRef<HTMLDivElement>(null);
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
@@ -57,12 +55,12 @@ const RecentlyAddedCard = ({ product, index, addItem }: { product: any, index: n
                         className="px-4 py-1.5 bg-dark text-white rounded-full flex items-center gap-2 shadow-2xl"
                     >
                         <Sparkles className="w-3 h-3 text-primary" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Ritual New</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">New Arrival</span>
                     </motion.div>
                 </div>
 
                 <motion.img
-                    src={product.imageUrl}
+                    src={resolveImageUrl(product.imageUrl)}
                     className="w-full h-full object-contain mix-blend-multiply transition-all duration-1000 group-hover:scale-110"
                     style={{ transform: 'translateZ(50px)' }}
                 />
@@ -70,7 +68,14 @@ const RecentlyAddedCard = ({ product, index, addItem }: { product: any, index: n
                 {/* Hover Action Overlay - Revealed on interaction (hover/touch) */}
                 <div className="absolute inset-x-4 md:inset-x-8 bottom-6 md:bottom-12 flex flex-col gap-2 md:gap-3 opacity-0 group-hover:opacity-100 group-hover:scale-100 scale-95 transition-all duration-700 delay-100" style={{ transform: 'translateZ(80px)' }}>
                     <button
-                        onClick={(e) => { e.preventDefault(); addItem(product); }}
+                        onClick={(e) => { 
+                            e.preventDefault(); 
+                            if (!isAuthenticated) {
+                                navigate(`/login?redirect=add-to-cart&productId=${product.id}`);
+                                return;
+                            }
+                            addItem(product); 
+                        }}
                         className="w-full py-4 md:py-6 bg-dark text-white rounded-[32px] md:rounded-[40px] font-black text-[10px] md:text-xs uppercase tracking-[0.2em] shadow-2xl hover:bg-primary hover:text-dark transition-all duration-500 flex items-center justify-center gap-3"
                     >
                         <ShoppingBag className="w-3.5 h-3.5 md:w-4 h-4" /> <span className="hidden xs:inline">SWIFT RITUAL</span>
@@ -90,13 +95,20 @@ const RecentlyAddedCard = ({ product, index, addItem }: { product: any, index: n
                 </div>
                 <div className="flex items-center justify-center gap-4">
                     <div className="h-px w-8 bg-gray-100" />
-                    <span className="text-2xl font-black text-dark/30 tracking-tight italic font-serif group-hover:text-dark/60 transition-colors duration-700">${product.price.toFixed(2)}</span>
+                    <span className="text-2xl font-black text-dark/30 tracking-tight italic font-serif group-hover:text-dark/60 transition-colors duration-700">₹{product.price.toFixed(2)}</span>
                     <div className="h-px w-8 bg-gray-100" />
                 </div>
             </div>
         </motion.div>
     );
 };
+
+const FIXED_CATEGORIES = [
+    { id: 'fixed-1', name: 'Skin Care', _count: { products: 120 }, imageUrl: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1974&auto=format&fit=crop', slug: 'skin-care' },
+    { id: 'fixed-2', name: 'Body Care', _count: { products: 95 }, imageUrl: 'https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=2070&auto=format&fit=crop', slug: 'body-care' },
+    { id: 'fixed-3', name: 'Fragrance', _count: { products: 45 }, imageUrl: 'https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=1920&auto=format&fit=crop', slug: 'fragrance' },
+    { id: 'fixed-4', name: 'Best Sellers', _count: { products: 150 }, imageUrl: 'https://images.unsplash.com/photo-1601049541289-9b1b7bbbfe19?q=80&w=1972&auto=format&fit=crop', slug: 'best-sellers' },
+];
 
 const Home = () => {
     const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
@@ -107,6 +119,7 @@ const Home = () => {
         offset: ["start end", "end start"]
     });
 
+    const [categories] = useState<any[]>(FIXED_CATEGORIES);
     const bgTextX = useTransform(scrollYProgress, [0, 1], [100, -100]);
 
     useEffect(() => {
@@ -154,7 +167,7 @@ const Home = () => {
                                 className="flex items-center gap-3 px-4 py-2 bg-white/40 backdrop-blur-md rounded-full w-fit shadow-sm border border-white/50"
                             >
                                 <Sparkles className="w-3.5 h-3.5 text-primary animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-dark/60">Collection 2026 • Parisian Rituals</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-dark/60">Blossom • Professional Skincare</span>
                             </motion.div>
 
                             <h1 className="text-5xl md:text-8xl lg:text-9xl font-black text-dark leading-[0.85] tracking-tighter">
@@ -187,16 +200,6 @@ const Home = () => {
                         </div>
 
                         <div className="flex items-center gap-12 mt-4 pt-10 border-t border-gray-100/50">
-                            {[
-                                { label: "Natural Extract", val: "99.2%" },
-                                { label: "Clinical Active", val: "15+" },
-                                { label: "Carbon Neutral", val: "100%" }
-                            ].map((stat, i) => (
-                                <div key={i} className="flex flex-col group cursor-default">
-                                    <span className="text-2xl font-black text-dark tracking-tighter group-hover:text-primary transition-colors duration-500">{stat.val}</span>
-                                    <span className="text-[9px] font-black text-dark/20 uppercase tracking-[0.2em]">{stat.label}</span>
-                                </div>
-                            ))}
                         </div>
                     </motion.div>
 
@@ -231,36 +234,6 @@ const Home = () => {
                 </div>
             </section>
 
-            {/* Values Section */}
-            <section className="py-40 px-6 lg:px-12 bg-[#FDFDFD]">
-                <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-12 lg:gap-24 relative">
-                    <div className="absolute top-1/2 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-gray-100 to-transparent -translate-y-1/2 hidden md:block" />
-
-                    {[
-                        { icon: Leaf, label: "Botanist Sourced", title: "Ethical Essence", desc: "Every botanical extract is harvested at its nutritional peak from our Mediterranean gardens.", color: "primary" },
-                        { icon: ShieldCheck, label: "Clinical Standard", title: "Scientific Purity", desc: "Formulated in our Parisian labs without synthetics. Tested for absolute skin harmony.", color: "dark" },
-                        { icon: Truck, label: "Premium Way", title: "Global Ritual", desc: "Carbon-neutral distribution in bespoke artisanal glass. Luxury delivered consciously.", color: "secondary-dark" }
-                    ].map((item, i) => (
-                        <motion.div
-                            key={i}
-                            initial={{ opacity: 0, y: 30 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: i * 0.2 }}
-                            className="relative flex flex-col gap-8 p-12 bg-white rounded-[60px] shadow-[0_20px_80px_rgba(0,0,0,0.03)] hover:shadow-[0_40px_100px_rgba(0,0,0,0.08)] transition-all duration-700 group border border-gray-50 z-10"
-                        >
-                            <div className="w-16 h-16 rounded-[24px] bg-dark flex items-center justify-center text-white group-hover:bg-primary group-hover:scale-110 group-hover:rotate-12 transition-all duration-700 shadow-xl shadow-black/10">
-                                <item.icon className="w-7 h-7" />
-                            </div>
-                            <div className="flex flex-col gap-3">
-                                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-primary/60">{item.label}</span>
-                                <h3 className="text-3xl font-black text-dark tracking-tighter leading-none">{item.title}.</h3>
-                                <p className="text-gray-400 font-medium leading-relaxed mt-2">{item.desc}</p>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
-            </section>
 
             {/* Recently Added Section */}
             <section className="py-60 px-6 lg:px-12 relative overflow-hidden">
@@ -328,12 +301,18 @@ const Home = () => {
                             to={`/shop?category=${cat.slug}`}
                             className={`group relative h-[450px] md:h-[600px] rounded-[60px] md:rounded-[100px] overflow-hidden flex items-end p-8 md:p-12 shadow-2xl transition-all duration-1000 md:mt-${i % 2 === 0 ? '0' : '20'}`}
                         >
-                            <img src={cat.image} className="absolute inset-0 w-full h-full object-cover transition-all duration-[2s] group-hover:scale-125" />
+                            {cat.imageUrl ? (
+                                <img src={resolveImageUrl(cat.imageUrl)} className="absolute inset-0 w-full h-full object-cover transition-all duration-[2s] group-hover:scale-125" />
+                            ) : (
+                                <div className="absolute inset-0 bg-gray-100 flex items-center justify-center text-gray-200">
+                                    <ShoppingBag className="w-20 h-20" />
+                                </div>
+                            )}
                             <div className="absolute inset-0 bg-gradient-to-t from-dark/95 via-dark/20 to-transparent group-hover:from-primary/90 group-hover:via-primary/20 transition-all duration-700" />
 
                             <div className="relative flex flex-col gap-3 translate-y-6 group-hover:translate-y-0 transition-all duration-700 ease-out">
                                 <div className="w-12 h-1 bg-white scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
-                                <span className="text-white/40 font-black text-[10px] uppercase tracking-[0.4em] mb-2">{cat.count}+ FORMULATIONS</span>
+                                <span className="text-white/40 font-black text-[10px] uppercase tracking-[0.4em] mb-2">{(cat as any)._count?.products || 0}+ FORMULATIONS</span>
                                 <h3 className="text-5xl font-black text-white tracking-tighter leading-none">{cat.name}.</h3>
                             </div>
 

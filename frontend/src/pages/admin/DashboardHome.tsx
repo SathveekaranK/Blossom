@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { DollarSign, Package, ShoppingBag, TrendingUp, Users, Plus, Layers, Bell, Loader2, Clock, X } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { IndianRupee, Package, ShoppingBag, TrendingUp, Users, Bell, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '../../api/api';
 
 interface DashboardStats {
@@ -17,7 +17,6 @@ interface DashboardStats {
 const DashboardHome = () => {
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const navigate = useNavigate();
 
     useEffect(() => {
         fetchStats();
@@ -43,15 +42,15 @@ const DashboardHome = () => {
     }
 
     const statCards = [
-        { name: 'Total Revenue', value: `$${(stats?.totalRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}`, icon: DollarSign, change: stats?.orderChange || '0%', color: 'bg-primary' },
+        { name: 'Total Revenue', value: `₹${(stats?.totalRevenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, icon: IndianRupee, change: stats?.orderChange || '0%', color: 'bg-primary' },
         { name: 'Total Orders', value: String(stats?.totalOrders || 0), icon: ShoppingBag, change: stats?.orderChange || '0%', color: 'bg-secondary' },
         { name: 'Active Users', value: String(stats?.activeUsers || 0), icon: Users, change: '', color: 'bg-primary-dark/50' },
         { name: 'Active Products', value: String(stats?.activeProducts || 0), icon: Package, change: '', color: 'bg-dark' },
     ];
 
     return (
-        <div className="flex flex-col gap-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="flex flex-col gap-6 lg:gap-10">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
                 {statCards.map((stat, index) => (
                     <motion.div
                         key={stat.name}
@@ -73,7 +72,12 @@ const DashboardHome = () => {
                         </div>
                         <div className="flex flex-col gap-1">
                             <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">{stat.name}</span>
-                            <span className="text-3xl font-black text-dark tracking-tighter">{stat.value}</span>
+                            {/* The instruction changed this line, assuming 'stats.revenue' refers to 'stats.totalRevenue' */}
+                            {stat.name === 'Total Revenue' ? (
+                                <span className="text-2xl font-black text-dark tracking-tighter">₹{(stats?.totalRevenue || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                            ) : (
+                                <span className="text-3xl font-black text-dark tracking-tighter">{stat.value}</span>
+                            )}
                         </div>
                     </motion.div>
                 ))}
@@ -107,7 +111,7 @@ const DashboardHome = () => {
                                                     : order.status === 'SHIPPED' ? 'bg-blue-50 text-blue-600'
                                                         : 'bg-amber-50 text-amber-600'
                                             }`}>{order.status}</span>
-                                        <span className="text-sm font-black text-dark">${Number(order.totalAmount).toFixed(2)}</span>
+                                        <span className="text-xs font-black text-dark italic">₹{Number(order.totalAmount).toFixed(2)}</span>
                                     </div>
                                 </div>
                             ))}
@@ -136,27 +140,6 @@ const DashboardHome = () => {
                         </p>
                     </div>
 
-                    {/* Quick Actions Card */}
-                    <div className="p-8 bg-dark text-white rounded-[32px] shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 rounded-full blur-3xl -z-10 animate-pulse" />
-                        <div className="flex flex-col gap-6 relative z-10">
-                            <div className="flex flex-col gap-1">
-                                <span className="text-primary font-black uppercase text-[10px] tracking-[0.4em]">Quick Actions</span>
-                                <h3 className="text-lg font-black tracking-tight">Manage your boutique</h3>
-                            </div>
-                            <div className="flex flex-col gap-3">
-                                <Link to="/admin/products" className="flex items-center gap-3 py-3 px-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-sm font-bold">
-                                    <Plus className="w-4 h-4 text-primary" /> Add Product
-                                </Link>
-                                <Link to="/admin/categories" className="flex items-center gap-3 py-3 px-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-sm font-bold">
-                                    <Layers className="w-4 h-4 text-primary" /> Add Category
-                                </Link>
-                                <Link to="/admin/orders" className="flex items-center gap-3 py-3 px-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all text-sm font-bold">
-                                    <Clock className="w-4 h-4 text-primary" /> View Orders
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

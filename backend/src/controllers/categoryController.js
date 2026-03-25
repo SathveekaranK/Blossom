@@ -1,4 +1,4 @@
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 import { z } from 'zod';
 const categorySchema = z.object({
     name: z.string().min(2),

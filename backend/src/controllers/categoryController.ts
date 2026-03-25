@@ -1,10 +1,11 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../index.js';
+import { prisma } from '../config/db.js';
 import { z } from 'zod';
 
 const categorySchema = z.object({
     name: z.string().min(2),
     slug: z.string().min(2),
+    imageUrl: z.string().optional(),
 });
 
 export const getCategories = async (req: Request, res: Response) => {
@@ -20,9 +21,9 @@ export const getCategories = async (req: Request, res: Response) => {
 
 export const createCategory = async (req: Request, res: Response) => {
     try {
-        const { name, slug } = categorySchema.parse(req.body);
+        const { name, slug, imageUrl } = categorySchema.parse(req.body);
         const category = await prisma.category.create({
-            data: { name, slug },
+            data: { name, slug, imageUrl },
         });
         res.status(201).json(category);
     } catch (error) {
@@ -36,10 +37,10 @@ export const createCategory = async (req: Request, res: Response) => {
 export const updateCategory = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string;
-        const { name, slug } = categorySchema.parse(req.body);
+        const { name, slug, imageUrl } = categorySchema.parse(req.body);
         const category = await prisma.category.update({
             where: { id },
-            data: { name, slug },
+            data: { name, slug, imageUrl },
         });
         res.json(category);
     } catch (error) {
