@@ -3,10 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search,
     Filter,
-    ShoppingBag,
-    Star,
     Heart,
-    Loader2,
     X,
     ChevronDown,
     Check,
@@ -18,6 +15,11 @@ import api from '../api/api';
 import { useAuthStore } from '../store/useAuthStore';
 import { useCartStore } from '../store/useCartStore';
 import { resolveImageUrl } from '../utils/imageUtils';
+import { useWishlistStore } from '../store/useWishlistStore';
+import { TextReveal, MagneticButton, SkeletonLoader, sanitizeProductName, sanitizeCategoryName } from '../components/AnimationHelpers';
+
+
+
 
 interface Category {
     id: string;
@@ -42,8 +44,6 @@ const SORT_OPTIONS = [
     { value: 'price_asc', label: 'Price: Low to High' },
     { value: 'price_desc', label: 'Price: High to Low' }
 ];
-
-import { useWishlistStore } from '../store/useWishlistStore';
 
 const Shop = () => {
     const { addItem } = useCartStore();
@@ -79,7 +79,6 @@ const Shop = () => {
             if (priceRange !== 10000) newParams.set('maxPrice', priceRange.toString());
             else newParams.delete('maxPrice');
 
-            // Only navigate if params actually changed to avoid infinite loop
             const currentSearch = searchParams.get('search') || '';
             const currentMax = searchParams.get('maxPrice') || '10000';
             
@@ -149,84 +148,88 @@ const Shop = () => {
         navigate(`/shop?${newParams.toString()}`);
     };
 
-
     return (
-        <div className="min-h-screen bg-white">
-            {/* Category Header */}
-            <div className="bg-light/30 border-b border-gray-100 py-16 px-6">
-                <div className="max-w-7xl mx-auto flex flex-col items-center text-center gap-4">
-                    <motion.span
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="text-[10px] font-black uppercase tracking-[0.4em] text-primary"
-                    >
-                        Professional Selection
-                    </motion.span>
-                    <motion.h1
+        <div className="min-h-screen bg-surface pt-24">
+            {/* ═══ Collection Header ═══ */}
+            <header className="pt-32 pb-20 px-6 lg:px-12 text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-primary/[0.01] -z-10" />
+                
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                    className="max-w-4xl mx-auto"
+                >
+                    <motion.span 
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-5xl font-black text-dark tracking-tighter"
+                        transition={{ delay: 0.5, duration: 1 }}
+                        className="text-[10px] md:text-xs font-bold uppercase tracking-[0.8em] text-primary mb-8 block ml-[0.8em]"
                     >
-                        The Beauty Collection.
-                    </motion.h1>
-                    <motion.p
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-gray-400 font-medium max-w-lg"
+                        T H E — S E L E C T I O N
+                    </motion.span>
+                    <h1 className="text-6xl md:text-9xl font-heading font-medium text-dark leading-none mb-12 tracking-tighter">
+                        <TextReveal text="Artisanal" className="text-primary italic font-light mr-4" />
+                        <TextReveal text="Adornments" />
+                    </h1>
+                    <div className="w-24 h-px bg-primary/20 mx-auto mb-10" />
+                    <motion.p 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 1, duration: 1.2 }}
+                        className="text-lg md:text-xl text-dark/60 font-heading italic max-w-2xl mx-auto leading-relaxed"
                     >
-                        Discover meticulously curated luxury beauty products, formulated with pure ingredients and botanical essences.
+                        Explore our curation of delicate hair adornments, designed to be the soft highlight of your unique aesthetic journey.
                     </motion.p>
-                </div>
-            </div>
+                </motion.div>
+            </header>
 
             <div className="max-w-7xl mx-auto px-6 py-12">
                 {/* Toolbar */}
-                <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12">
-                    <div className="flex items-center gap-4 w-full md:w-auto">
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-12">
+                    <div className="flex w-full lg:w-auto items-center gap-4">
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="flex items-center gap-2 p-4 bg-dark text-white rounded-2xl font-bold hover:bg-primary transition-all shadow-xl shadow-black/5"
+                            className="flex items-center gap-2 px-5 py-3 bg-white text-dark rounded-[14px] border border-gray-200 shadow-sm hover:border-gray-300 transition-colors font-semibold text-sm shrink-0"
                         >
-                            <Filter className="w-4 h-4" />
+                            <Filter className="w-4 h-4 text-dark" />
                             <span>Filters</span>
                         </button>
 
-                        <form onSubmit={handleSearch} className="relative flex-1 md:w-80 group">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300 group-focus-within:text-primary transition-colors" />
+                        <form onSubmit={handleSearch} className="relative flex-1 lg:w-80 group">
+                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/40 group-focus-within:text-primary transition-colors" />
                             <input
                                 type="text"
-                                placeholder="Search for perfection..."
+                                placeholder="Search our adornments..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-14 pr-6 py-4 bg-gray-50 border-transparent focus:bg-white focus:border-primary/20 rounded-2xl text-base md:text-sm font-medium focus:outline-none transition-all"
+                                className="w-full pl-12 pr-5 py-4 bg-white border border-primary/10 rounded-2xl shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/5 text-dark font-body text-sm outline-none transition-all placeholder:text-muted/40"
                             />
                         </form>
                     </div>
 
-                    <div className="flex items-center gap-4 w-full md:w-auto justify-between md:justify-end">
+                    <div className="flex w-full lg:w-auto items-center justify-between lg:justify-end gap-6 shrink-0">
+                        <span className="text-sm font-medium text-muted">
+                            {products.length} Products
+                        </span>
+                        
                         <div className="relative" ref={sortRef}>
                             <button
                                 onClick={() => setIsSortOpen(!isSortOpen)}
-                                className="flex items-center gap-3 bg-gray-50 px-8 py-3 rounded-full hover:bg-gray-100 transition-all group"
+                                className="flex items-center gap-2 bg-white border border-gray-200 rounded-[14px] shadow-sm px-5 py-3 hover:border-gray-300 transition-colors"
                             >
-                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-300 group-hover:text-dark/40 transition-colors">Sort By:</span>
-                                <span className="text-sm font-bold text-dark">{SORT_OPTIONS.find(opt => opt.value === currentSort)?.label || 'Recent'}</span>
-                                <motion.div
-                                    animate={{ rotate: isSortOpen ? 180 : 0 }}
-                                    transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                                >
-                                    <ChevronDown className="w-4 h-4 text-primary" />
-                                </motion.div>
+                                <span className="text-sm font-medium text-muted">Sort by:</span>
+                                <span className="text-sm font-semibold text-dark">{SORT_OPTIONS.find(opt => opt.value === currentSort)?.label || 'Recent'}</span>
+                                <ChevronDown className={`w-4 h-4 text-muted transition-transform ${isSortOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             <AnimatePresence>
                                 {isSortOpen && (
                                     <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                        transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-                                        className="absolute right-0 top-full mt-2 w-64 bg-white rounded-3xl shadow-2xl border border-gray-100 p-2 z-[60] overflow-hidden"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: 10 }}
+                                        className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 py-2 overflow-hidden"
                                     >
                                         {SORT_OPTIONS.map((option) => (
                                             <button
@@ -237,18 +240,13 @@ const Shop = () => {
                                                     navigate(`/shop?${newParams.toString()}`);
                                                     setIsSortOpen(false);
                                                 }}
-                                                className="w-full flex items-center justify-between px-6 py-4 rounded-2xl hover:bg-gray-50 transition-all group"
+                                                className={`w-full flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 transition-colors ${currentSort === option.value ? 'bg-gray-50/50' : ''}`}
                                             >
-                                                <span className={`text-sm font-bold transition-colors ${currentSort === option.value ? 'text-primary' : 'text-dark/60 group-hover:text-dark'}`}>
+                                                <span className={`text-sm font-medium ${currentSort === option.value ? 'text-dark font-semibold' : 'text-muted'}`}>
                                                     {option.label}
                                                 </span>
                                                 {currentSort === option.value && (
-                                                    <motion.div
-                                                        initial={{ scale: 0 }}
-                                                        animate={{ scale: 1 }}
-                                                    >
-                                                        <Check className="w-4 h-4 text-primary" />
-                                                    </motion.div>
+                                                    <Check className="w-4 h-4 text-dark" />
                                                 )}
                                             </button>
                                         ))}
@@ -256,107 +254,138 @@ const Shop = () => {
                                 )}
                             </AnimatePresence>
                         </div>
-                        <span className="text-xs font-black text-gray-300 uppercase tracking-widest">{products.length} Items</span>
                     </div>
                 </div>
 
-                {/* Product Grid */}
+                {/* ═══ Product Grid ═══ */}
                 {isLoading ? (
-                    <div className="flex flex-col items-center justify-center py-40 gap-4">
-                        <Loader2 className="w-12 h-12 animate-spin text-primary" />
-                        <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-300">Summoning Beauty...</span>
+                    <div className="py-20">
+                        <SkeletonLoader />
                     </div>
                 ) : products.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-40 text-center gap-6">
-                        <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center text-gray-200">
-                            <Search className="w-10 h-10" />
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex flex-col items-center justify-center py-40 text-center gap-10"
+                    >
+                        <div className="w-40 h-40 rounded-full bg-primary/5 flex items-center justify-center animate-pulse">
+                            <Search className="w-12 h-12 text-primary/10" />
                         </div>
-                        <div className="flex flex-col gap-2">
-                            <h3 className="text-2xl font-black text-dark">No matches found.</h3>
-                            <p className="text-gray-400 font-medium max-w-xs">We couldn't find any products matching your current criteria. Try adjusting your filters.</p>
+                        <div className="flex flex-col gap-4">
+                            <h3 className="text-4xl font-heading text-primary italic">No Adornments Found</h3>
+                            <p className="text-lg text-primary/40 max-w-sm font-light">
+                                Perhaps redefine your seeking criteria or explore our entire curation.
+                            </p>
                         </div>
                         <button
                             onClick={() => { setSearch(''); navigate('/shop'); }}
-                            className="text-primary font-black uppercase text-xs tracking-widest border-b-2 border-primary"
+                            className="px-12 py-5 bg-primary text-surface rounded-full text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-black transition-all shadow-premium"
                         >
-                            Reset All Filters
+                            Explore All Creations
                         </button>
-                    </div>
+                    </motion.div>
                 ) : (
                     <motion.div
                         layout
-                        className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-10"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24"
                     >
-                        <AnimatePresence>
+                        <AnimatePresence mode="popLayout">
                             {products.map((product, idx) => (
                                 <motion.div
                                     key={product.id}
                                     layout
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, scale: 0.9 }}
-                                    whileTap={{ scale: 0.98 }}
-                                    transition={{ delay: idx * 0.05 }}
-                                    className="group flex flex-col gap-5"
+                                    transition={{ 
+                                        delay: idx * 0.05,
+                                        duration: 1,
+                                        ease: [0.16, 1, 0.3, 1]
+                                    }}
+                                    className="group flex flex-col gap-8"
                                 >
-                                    <Link to={`/products/${product.slug}`} className="relative aspect-[3/4] overflow-hidden rounded-[40px] shadow-sm hover:shadow-2xl transition-all duration-500">
+                                    <div className="relative aspect-[3/4] bg-white rounded-[60px] border border-primary/5 overflow-hidden transition-all duration-1000 group-hover:shadow-premium group-hover:border-primary/20 shadow-sm">
+                                        <Link to={`/products/${product.slug}`} className="absolute inset-0 z-10" />
+                                        
+                                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+
                                         {product.imageUrl ? (
-                                            <img
-                                                src={resolveImageUrl(product.imageUrl)}
+                                            <motion.img
+                                                src={resolveImageUrl(product.imageUrl, product.name)}
                                                 alt={product.name}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                whileHover={{ scale: 1.1 }}
+                                                transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                                                className="w-full h-full object-cover transition-all duration-[1.5s]"
                                             />
                                         ) : (
-                                            <div className="w-full h-full bg-light flex items-center justify-center text-gray-200">
-                                                <ShoppingBag className="w-12 h-12" />
+                                            <div className="w-full h-full flex items-center justify-center text-primary/10 bg-primary/[0.02]">
+                                                <Layers className="w-16 h-16" />
+                                            </div>
+                                        )}
+                                        
+                                        {/* Status Badge */}
+                                        {idx < 2 && (
+                                            <div className="absolute top-8 left-8 z-20">
+                                                <motion.div 
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    className="px-5 py-2 bg-surface/90 backdrop-blur-md text-primary rounded-full border border-secondary/20 shadow-premium"
+                                                >
+                                                    <span className="text-[9px] font-bold uppercase tracking-[0.4em]">Signature Selection</span>
+                                                </motion.div>
                                             </div>
                                         )}
 
-                                        <div className="absolute top-4 md:top-6 right-4 md:right-6 flex flex-col gap-2 opacity-0 group-hover:opacity-100 translate-x-4 group-hover:translate-x-0 scale-90 group-hover:scale-100 transition-all duration-300">
+                                        {/* Wishlist Button */}
+                                        <div className="absolute top-8 right-8 z-30">
                                             <button
                                                 onClick={(e) => {
                                                     e.preventDefault();
-                                                    if (!isAuthenticated) {
-                                                        navigate('/login');
-                                                        return;
-                                                    }
+                                                    if (!isAuthenticated) { navigate('/login'); return; }
                                                     toggleItem(product);
                                                 }}
-                                                className={`p-2.5 md:p-3 rounded-full shadow-lg transition-all transform hover:scale-110 ${isInWishlist(product.id) ? 'bg-primary text-white' : 'bg-white text-dark hover:text-primary'
-                                                    }`}
+                                                className={`p-3.5 rounded-full backdrop-blur-xl shadow-premium border transition-all duration-700 hover:scale-110 active:scale-90 ${isInWishlist(product.id) ? 'bg-primary border-primary text-dark' : 'bg-white/60 border-primary/10 text-dark/40 hover:text-primary hover:border-primary/30'}`}
                                             >
-                                                <Heart className={`w-3.5 h-3.5 md:w-4 h-4 ${isInWishlist(product.id) ? 'fill-white' : ''}`} />
+                                                <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-dark' : ''}`} />
                                             </button>
                                         </div>
 
-                                        <div className="absolute bottom-4 md:bottom-6 left-4 md:left-6 right-4 md:right-6 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-300">
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    if (!isAuthenticated) {
-                                                        navigate(`/login?redirect=add-to-cart&productId=${product.id}`);
-                                                        return;
-                                                    }
-                                                    addItem(product);
-                                                }}
-                                                disabled={product.stock === 0}
-                                                className={`w-full py-3 md:py-4 bg-white/90 backdrop-blur-md text-dark rounded-2xl md:rounded-3xl font-black text-[10px] md:text-xs uppercase tracking-widest shadow-xl transition-all ${product.stock === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-primary hover:text-white'}`}
-                                            >
-                                                {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                                            </button>
+                                        {/* Quick Add Button */}
+                                        <div className="absolute bottom-10 left-8 right-8 translate-y-[130%] group-hover:translate-y-0 opacity-0 group-hover:opacity-100 transition-all duration-1000 z-30">
+                                            <MagneticButton>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        if (!isAuthenticated) { navigate(`/login?redirect=add-to-cart&productId=${product.id}`); return; }
+                                                        addItem(product);
+                                                    }}
+                                                    disabled={product.stock === 0}
+                                                    className={`w-full py-5 rounded-3xl font-bold text-[10px] uppercase tracking-[0.4em] shadow-premium backdrop-blur-md transition-all ${product.stock === 0 ? 'bg-gray-100 text-primary/30 cursor-not-allowed' : 'bg-primary text-surface hover:bg-black'}`}
+                                                >
+                                                    {product.stock === 0 ? 'Out of Stock' : 'Add to Collection'}
+                                                </button>
+                                            </MagneticButton>
                                         </div>
-                                    </Link>
+                                    </div>
 
-                                    <div className="flex flex-col gap-1 px-2">
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-primary">{product.category?.name}</span>
-                                            <div className="flex items-center gap-1 text-xs font-bold text-gray-300">
-                                                <Star className="w-3 h-3 fill-amber-400 stroke-amber-400" />
-                                                <span>{(product.rating || 0).toFixed(1)}</span>
-                                            </div>
+                                    <div className="flex flex-col gap-4 items-center text-center px-4 transition-transform duration-700 group-hover:-translate-y-2">
+                                        <motion.span 
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="text-[10px] font-bold text-primary uppercase tracking-[0.5em]"
+                                        >
+                                            {sanitizeCategoryName(product.category?.name) || "Aesthetic Adornment"}
+                                        </motion.span>
+                                        <Link to={`/products/${product.slug}`}>
+                                            <h3 className="text-2xl font-heading font-medium text-dark leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                                                {sanitizeProductName(product.name)}
+                                            </h3>
+                                        </Link>
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-px w-6 bg-primary/10 group-hover:w-10 transition-all duration-1000" />
+                                            <span className="font-bold text-dark/80 text-lg tracking-widest font-heading">₹{Number(product.price).toLocaleString()}</span>
+                                            <div className="h-px w-6 bg-primary/10 group-hover:w-10 transition-all duration-1000" />
                                         </div>
-                                        <h3 className="text-lg font-black text-dark tracking-tight leading-tight line-clamp-1">{product.name}</h3>
-                                        <span className="font-bold text-dark/70">₹{Number(product.price).toFixed(2)}</span>
                                     </div>
                                 </motion.div>
                             ))}
@@ -365,56 +394,54 @@ const Shop = () => {
                 )}
             </div>
 
-            {/* Sidebar Filter */}
+            {/* Sidebar Filter Modal */}
             <AnimatePresence>
                 {isSidebarOpen && (
-                    <div className="fixed inset-0 z-[100] flex justify-end">
+                    <div className="fixed inset-0 z-[120] flex justify-end">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-dark/40 backdrop-blur-sm"
+                            className="absolute inset-0 bg-dark/20 backdrop-blur-sm"
                             onClick={() => setIsSidebarOpen(false)}
                         />
                         <motion.div
                             initial={{ x: '100%' }}
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
-                            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="relative w-full max-w-sm bg-white h-full shadow-2xl p-10 flex flex-col gap-10"
+                            transition={{ type: "tween", duration: 0.3, ease: "circOut" }}
+                            className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col"
                         >
-                            <div className="flex items-center justify-between">
-                                <div className="flex flex-col">
-                                    <h2 className="text-2xl font-black text-dark tracking-tight">Refine Beauty.</h2>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-300">Scientific Filtering</span>
-                                </div>
+                            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                                <h2 className="text-xl font-heading font-bold text-dark tracking-tight">Filters</h2>
                                 <button
                                     onClick={() => setIsSidebarOpen(false)}
-                                    className="p-3 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors"
+                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-muted hover:text-dark"
                                 >
-                                    <X className="w-5 h-5 text-dark" />
+                                    <X className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            <div className="flex flex-col gap-8">
+                            <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-8 custom-scrollbar">
+                                {/* Categories */}
                                 <div className="flex flex-col gap-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center text-dark shadow-sm shadow-primary/20">
-                                            <Layers className="w-3 h-3" strokeWidth={3} />
-                                        </div>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-dark/40">Categories</span>
+                                    <div className="flex items-center gap-2">
+                                        <Layers className="w-4 h-4 text-dark" />
+                                        <span className="text-sm font-semibold text-dark">Category</span>
                                     </div>
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-col gap-1.5">
                                         <button
                                             onClick={() => {
                                                 const newParams = new URLSearchParams(searchParams);
                                                 newParams.delete('category');
                                                 navigate(`/shop?${newParams.toString()}`);
                                             }}
-                                            className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all ${currentCategory === '' ? 'bg-dark text-white shadow-lg shadow-black/10' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
-                                                }`}
+                                            className={`flex items-center gap-3 p-3 rounded-2xl transition-all text-sm font-medium border ${currentCategory === '' ? 'bg-primary/10 border-primary/20 text-dark' : 'bg-transparent border-transparent text-dark/40 hover:bg-primary/5'}`}
                                         >
-                                            All Rituals
+                                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${currentCategory === '' ? 'border-primary bg-primary' : 'border-dark/10'}`}>
+                                                {currentCategory === '' && <div className="w-1.5 h-1.5 bg-dark rounded-full" />}
+                                            </div>
+                                            All Treasures
                                         </button>
                                         {categories.map((cat) => (
                                             <button
@@ -424,27 +451,31 @@ const Shop = () => {
                                                     newParams.set('category', cat.slug);
                                                     navigate(`/shop?${newParams.toString()}`);
                                                 }}
-                                                className={`px-5 py-2.5 rounded-2xl text-xs font-bold transition-all ${currentCategory === cat.slug ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
-                                                    }`}
+                                                className={`flex items-center gap-3 p-3 rounded-2xl transition-all text-sm font-medium border ${currentCategory === cat.slug ? 'bg-primary/10 border-primary/20 text-dark' : 'bg-transparent border-transparent text-dark/40 hover:bg-primary/5'}`}
                                             >
-                                                {cat.name}
+                                                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${currentCategory === cat.slug ? 'border-primary bg-primary' : 'border-dark/10'}`}>
+                                                    {currentCategory === cat.slug && <div className="w-1.5 h-1.5 bg-dark rounded-full" />}
+                                                </div>
+                                                {sanitizeCategoryName(cat.name)}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-6 h-6 rounded-lg bg-primary flex items-center justify-center text-dark shadow-sm shadow-primary/20">
-                                                <IndianRupee className="w-3 h-3" strokeWidth={3} />
-                                            </div>
-                                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-dark/40">Price Range</span>
-                                        </div>
-                                        <span className="text-xs font-black text-primary">₹{priceRange}</span>
+                                <div className="h-px bg-gray-100" />
+
+                                {/* Price Range */}
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex items-center gap-2">
+                                        <IndianRupee className="w-4 h-4 text-dark" />
+                                        <span className="text-sm font-semibold text-dark">Price Range</span>
                                     </div>
-                                    <div className="flex flex-col gap-4 px-2">
-                                        <div className="relative h-6 flex items-center">
+                                    <div className="flex flex-col gap-4 bg-primary/5 p-5 rounded-[25px] border border-primary/10">
+                                        <div className="flex justify-between items-center pb-2">
+                                            <span className="text-xs font-bold text-dark/40 uppercase tracking-widest">Up to</span>
+                                            <span className="text-base font-bold text-dark tracking-tight">₹{priceRange}</span>
+                                        </div>
+                                        <div className="relative h-4 flex items-center">
                                             <input
                                                 type="range"
                                                 min="0"
@@ -452,18 +483,20 @@ const Shop = () => {
                                                 step="100"
                                                 value={priceRange}
                                                 onChange={(e) => setPriceRange(parseInt(e.target.value))}
-                                                className="blossom-slider cursor-pointer"
+                                                className="w-full h-1.5 bg-primary/20 rounded-full outline-none appearance-none cursor-pointer accent-primary"
                                             />
-                                        </div>
-                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-[0.2em] text-gray-300">
-                                            <span>₹0</span>
-                                            <span>₹10000+</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-auto flex flex-col gap-3">
+                            <div className="p-6 border-t border-primary/5 bg-white grid grid-cols-2 gap-3">
+                                <button
+                                    onClick={() => { setSearch(''); navigate('/shop'); setIsSidebarOpen(false); }}
+                                    className="py-3 px-4 border border-primary/10 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-colors text-dark/60"
+                                >
+                                    Reset
+                                </button>
                                 <button
                                     onClick={() => {
                                         const newParams = new URLSearchParams(searchParams);
@@ -471,15 +504,9 @@ const Shop = () => {
                                         navigate(`/shop?${newParams.toString()}`);
                                         setIsSidebarOpen(false);
                                     }}
-                                    className="w-full py-4 bg-dark text-white rounded-3xl font-black shadow-xl shadow-black/10 hover:bg-primary transition-all duration-300"
+                                    className="px-6 py-3 bg-primary text-dark rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-primary-dark transition-all shadow-sm hover:shadow-md"
                                 >
-                                    Apply Filters
-                                </button>
-                                <button
-                                    onClick={() => { setSearch(''); navigate('/shop'); setIsSidebarOpen(false); }}
-                                    className="w-full py-4 text-dark font-black text-xs uppercase tracking-widest hover:text-primary transition-all"
-                                >
-                                    Reset All
+                                    Apply
                                 </button>
                             </div>
                         </motion.div>

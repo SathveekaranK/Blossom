@@ -49,7 +49,7 @@ const Wishlist = () => {
                     </div>
                     <div className="flex flex-col gap-4">
                         <h1 className="text-5xl font-black text-dark tracking-tighter">Your Sanctuary is Empty.</h1>
-                        <p className="text-gray-400 font-medium max-w-sm">Curate your perfect botanical ritual by adding your favorite discoveries here.</p>
+                        <p className="text-gray-400 font-medium max-w-sm">Curate your perfect collection of adornments by adding your favorite discoveries here.</p>
                     </div>
                     <Link
                         to="/shop"
@@ -110,7 +110,7 @@ const Wishlist = () => {
                             </Link>
 
                             <div className="flex flex-col gap-2 mb-8">
-                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">{item.category?.name || 'Skincare'}</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary">{item.category?.name || 'Accessories'}</span>
                                 <h2 className="text-2xl font-black text-dark tracking-tight leading-tight">{item.name}</h2>
                                 <span className="text-lg font-black text-dark/40 tracking-tighter font-serif italic">₹{item.price}</span>
                             </div>
@@ -120,7 +120,7 @@ const Wishlist = () => {
                                 className="w-full py-5 bg-white rounded-3xl text-dark font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-dark hover:text-white transition-all duration-500 shadow-sm"
                             >
                                 <ShoppingBag className="w-4 h-4" />
-                                <span>Add to Ritual</span>
+                                <span>Add to Collection</span>
                             </button>
                         </motion.div>
                     ))}
