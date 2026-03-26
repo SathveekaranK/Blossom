@@ -80,7 +80,7 @@ const Login = () => {
                             Welcome Back.
                         </h1>
                         <p className="text-gray-400 font-medium text-center">
-                            Access your professional skincare account
+                            Access your personal styling account
                         </p>
                     </div>
                 </div>

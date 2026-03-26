@@ -17,7 +17,7 @@ const Journal = () => {
                         Insights & <span className="italic font-serif text-secondary">Inspiration.</span>
                     </h1>
                     <p className="max-w-xl text-gray-400 font-medium text-lg leading-relaxed mt-4">
-                        Explore the philosophy of mindful beauty, clinical breakthroughs, and the stories behind our botanicals.
+                        Explore the philosophy of gentle styling, aesthetic breakthroughs, and the stories behind our adornments.
                     </p>
                 </motion.div>
             </header>

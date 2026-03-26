@@ -20,7 +20,11 @@ import Wishlist from './pages/Wishlist.tsx';
 import Login from './pages/Login.tsx';
 import Register from './pages/Register.tsx';
 import UserLayout from './components/UserLayout.tsx';
+import Profile from './pages/Profile.tsx';
 import { useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import api from './api/api';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -29,10 +33,6 @@ const ScrollToTop = () => {
   }, [pathname]);
   return null;
 };
-
-import { useEffect } from 'react';
-import api from './api/api';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
 function App() {
   const { isAuthenticated } = useAuthStore();
@@ -85,6 +85,7 @@ function App() {
           {/* Customer Protected Routes */}
           <Route element={<ProtectedRoute />}>
             <Route path="/my-orders" element={<MyOrders />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
         </Route>
 

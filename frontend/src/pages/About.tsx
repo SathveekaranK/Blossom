@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Heart, Shield, Award } from 'lucide-react';
 
 const About = () => {
     return (
@@ -8,8 +8,8 @@ const About = () => {
             <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 z-0">
                     <img
-                        src="https://images.unsplash.com/photo-1556228578-0d85b1a4d571?q=80&w=1974&auto=format&fit=crop"
-                        alt="Botanical background"
+                        src="/hair-band.png"
+                        alt="Aesthetic background"
                         className="w-full h-full object-cover scale-110 opacity-40 blur-sm"
                     />
                     <div className="absolute inset-0 bg-gradient-to-b from-white via-transparent to-white" />
@@ -25,11 +25,11 @@ const About = () => {
                         <span className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">The Heritage</span>
                         <h1 className="text-6xl md:text-8xl font-black text-dark tracking-tighter leading-[0.9]">
                             Rooted in <span className="italic font-serif text-primary">Nature.</span><br />
-                            Refined by <span className="text-secondary italic font-serif">Science.</span>
+                            Refined by <span className="text-secondary italic font-serif">Aesthetics.</span>
                         </h1>
                         <p className="max-w-xl text-gray-500 font-medium text-lg leading-relaxed mt-4">
-                            Born in the gardens of the Mediterranean and perfected in our Parisian laboratories,
-                            Blossom represents the ultimate synergy of botanical mastery and clinical skincare.
+                            Born from a love for artisanal craftsmanship and modern aesthetics,
+                            IZZA Collections represents the ultimate synergy of timeless design and modern hair adornments.
                         </p>
                     </motion.div>
                 </div>
@@ -42,8 +42,8 @@ const About = () => {
                         <span className="text-[10px] font-black uppercase tracking-[0.5em] text-primary">Our Philosophy</span>
                         <h2 className="text-4xl font-black text-dark tracking-tighter">Commitment to Purity.</h2>
                         <p className="text-gray-400 font-medium leading-relaxed">
-                            Blossom is dedicated to the fusion of botanical mastery and clinical science. 
-                            Our journey is defined by a relentless pursuit of ethical sourcing and results-driven skincare ritual.
+                            Blossom is dedicated to the fusion of artisan curation and modern styling. 
+                            Our journey is defined by a relentless pursuit of ethical sourcing and results-driven aesthetic journeys.
                         </p>
                     </div>
                 </div>

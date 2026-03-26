@@ -16,9 +16,9 @@ const SettingsAdmin = () => {
     const [showSuccess, setShowSuccess] = useState(false);
 
     const [settings, setSettings] = useState({
-        siteName: 'Blossom Boutique',
+        siteName: 'IZZA Collection',
         siteDescription: 'Elevated lifestyle essentials for the modern minimalist.',
-        contactEmail: 'hello@blossom.com',
+        contactEmail: 'hello@izzacollection.com',
         phoneNumber: '+1 (555) 123-4567',
         enableNotifications: true,
         enableTwoFactor: false,
@@ -37,106 +37,112 @@ const SettingsAdmin = () => {
 
     return (
         <div className="flex flex-col gap-10">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div className="flex flex-col gap-1">
-                    <h2 className="text-2xl font-black text-dark tracking-tight">System Settings</h2>
-                    <p className="text-gray-400 font-semibold text-xs uppercase tracking-widest">Configure your digital storefront</p>
+                    <h2 className="text-3xl font-heading font-bold text-dark tracking-tight">System Settings</h2>
+                    <p className="text-sm text-muted font-body">Configure and manage your digital storefront preferences.</p>
                 </div>
                 <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="px-8 py-3.5 bg-dark text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-black/10 hover:bg-primary transition-all flex items-center gap-3 disabled:opacity-50"
+                    className="px-8 py-3.5 bg-dark text-white rounded-xl font-semibold shadow-md hover:shadow-lg hover:bg-black transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:shadow-none min-w-[200px]"
                 >
-                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                    {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                     {isSaving ? 'Saving Changes...' : 'Save Configuration'}
                 </button>
             </div>
 
             {showSuccess && (
                 <motion.div
-                    initial={{ opacity: 0, y: -20 }}
+                    initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-4 bg-secondary/10 border border-secondary/20 rounded-2xl flex items-center gap-3 text-secondary"
+                    className="p-4 bg-green-50 rounded-2xl border border-green-200 flex items-center gap-3 text-green-700 shadow-sm"
                 >
-                    <CheckCircle2 className="w-5 h-5" />
-                    <span className="text-xs font-black uppercase tracking-widest">Settings updated successfully!</span>
+                    <CheckCircle2 className="w-6 h-6 flex-shrink-0" />
+                    <span className="text-sm font-semibold">Settings updated seamlessly.</span>
                 </motion.div>
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* General Settings */}
                 <div className="lg:col-span-2 flex flex-col gap-8">
-                    <div className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm flex flex-col gap-8">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-dark/30">
+                    <div className="p-8 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-8">
+                        <div className="flex items-center gap-4 border-b border-gray-100 pb-6">
+                            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-dark border border-gray-100">
                                 <Globe className="w-6 h-6" />
                             </div>
-                            <h3 className="text-lg font-black text-dark">General Information</h3>
+                            <div className="flex flex-col gap-1">
+                                <h3 className="text-xl font-heading font-bold text-dark">General Information</h3>
+                                <p className="text-sm text-muted font-medium">Basic details about your store.</p>
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="flex flex-col gap-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Store Name</label>
+                                <label className="text-xs font-bold text-dark uppercase tracking-wider ml-1">Store Name</label>
                                 <input
                                     type="text"
                                     value={settings.siteName}
                                     onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
-                                    className="px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium outline-none transition-all"
+                                    className="px-5 py-3.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all focus:bg-white placeholder:text-muted"
                                 />
                             </div>
                             <div className="flex flex-col gap-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Support Email</label>
+                                <label className="text-xs font-bold text-dark uppercase tracking-wider ml-1">Support Email</label>
                                 <input
                                     type="email"
                                     value={settings.contactEmail}
                                     onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
-                                    className="px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium outline-none transition-all"
+                                    className="px-5 py-3.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all focus:bg-white placeholder:text-muted"
                                 />
                             </div>
                             <div className="flex flex-col gap-2 md:col-span-2">
-                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-4">Store Description</label>
+                                <label className="text-xs font-bold text-dark uppercase tracking-wider ml-1">Store Description</label>
                                 <textarea
                                     value={settings.siteDescription}
                                     onChange={(e) => setSettings({ ...settings, siteDescription: e.target.value })}
                                     rows={3}
-                                    className="px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium outline-none transition-all resize-none"
+                                    className="px-5 py-3.5 bg-gray-50 rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all focus:bg-white resize-none placeholder:text-muted"
                                 />
                             </div>
                         </div>
                     </div>
 
-                    <div className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm flex flex-col gap-8">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-50 flex items-center justify-center text-dark/30">
+                    <div className="p-8 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-8">
+                        <div className="flex items-center gap-4 border-b border-gray-100 pb-6">
+                            <div className="w-12 h-12 bg-gray-50 rounded-2xl flex items-center justify-center text-dark border border-gray-100">
                                 <Shield className="w-6 h-6" />
                             </div>
-                            <h3 className="text-lg font-black text-dark">Security & Privacy</h3>
+                            <div className="flex flex-col gap-1">
+                                <h3 className="text-xl font-heading font-bold text-dark">Security & Privacy</h3>
+                                <p className="text-sm text-muted font-medium">Manage access and site protection.</p>
+                            </div>
                         </div>
 
                         <div className="flex flex-col gap-4">
-                            <div className="flex items-center justify-between p-6 bg-gray-50/50 rounded-3xl border border-gray-100/50">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-sm font-bold text-dark">Two-Factor Authentication</span>
-                                    <span className="text-xs text-gray-400">Add an extra layer of security to your account.</span>
+                            <div className="flex items-center justify-between p-6 bg-gray-50 rounded-2xl border border-gray-100 group hover:border-gray-200 transition-colors">
+                                <div className="flex flex-col gap-1 pr-4">
+                                    <span className="text-base font-bold text-dark">Two-Factor Authentication</span>
+                                    <span className="text-sm text-muted font-medium leading-relaxed">Add an extra layer of security requiring a code on login.</span>
                                 </div>
                                 <button
                                     onClick={() => setSettings({ ...settings, enableTwoFactor: !settings.enableTwoFactor })}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${settings.enableTwoFactor ? 'bg-secondary' : 'bg-gray-200'}`}
+                                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors flex-shrink-0 ${settings.enableTwoFactor ? 'bg-indigo-600' : 'bg-gray-200'}`}
                                 >
-                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.enableTwoFactor ? 'left-7' : 'left-1'}`} />
+                                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${settings.enableTwoFactor ? 'translate-x-8' : 'translate-x-1'}`} />
                                 </button>
                             </div>
 
-                            <div className="flex items-center justify-between p-6 bg-gray-50/50 rounded-3xl border border-gray-100/50">
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-sm font-bold text-dark">Maintenance Mode</span>
-                                    <span className="text-xs text-gray-400">Temporarily disable storefront access for customers.</span>
+                            <div className="flex items-center justify-between p-6 bg-red-50/50 rounded-2xl border border-red-100 group hover:border-red-200 transition-colors">
+                                <div className="flex flex-col gap-1 pr-4">
+                                    <span className="text-base font-bold text-dark">Maintenance Mode</span>
+                                    <span className="text-sm text-muted font-medium leading-relaxed">Temporarily hide the storefront from public access.</span>
                                 </div>
                                 <button
                                     onClick={() => setSettings({ ...settings, maintenanceMode: !settings.maintenanceMode })}
-                                    className={`w-12 h-6 rounded-full transition-all relative ${settings.maintenanceMode ? 'bg-primary' : 'bg-gray-200'}`}
+                                    className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors flex-shrink-0 ${settings.maintenanceMode ? 'bg-red-600' : 'bg-gray-200'}`}
                                 >
-                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${settings.maintenanceMode ? 'left-7' : 'left-1'}`} />
+                                    <span className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${settings.maintenanceMode ? 'translate-x-8' : 'translate-x-1'}`} />
                                 </button>
                             </div>
                         </div>
@@ -145,37 +151,51 @@ const SettingsAdmin = () => {
 
                 {/* Sidebar Settings */}
                 <div className="flex flex-col gap-8">
-                    <div className="p-8 bg-dark text-white rounded-[40px] shadow-2xl flex flex-col gap-6">
-                        <div className="flex items-center gap-4">
-                            <Bell className="w-5 h-5 text-primary" />
-                            <h4 className="text-sm font-black uppercase tracking-widest">Notifications</h4>
+                    <div className="p-8 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-6 relative overflow-hidden">
+                        <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-50 rounded-full blur-3xl" />
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="w-12 h-12 bg-indigo-50 rounded-2xl border border-indigo-100 flex items-center justify-center">
+                                <Bell className="w-6 h-6 text-indigo-600" />
+                            </div>
+                            <h4 className="text-lg font-heading font-bold text-dark">Notifications</h4>
                         </div>
-                        <p className="text-xs text-gray-400 leading-relaxed font-medium">
-                            Manage how the system alerts you about new orders, low stock, and security events.
+                        <p className="text-sm text-muted font-medium leading-relaxed relative z-10">
+                            Manage alerts for new orders, low stock, and security anomalies.
                         </p>
-                        <div className="flex items-center gap-3 mt-2">
-                            <input
-                                type="checkbox"
-                                checked={settings.enableNotifications}
-                                onChange={(e) => setSettings({ ...settings, enableNotifications: e.target.checked })}
-                                className="w-5 h-5 rounded-lg border-white/20 bg-white/5 accent-primary"
-                            />
-                            <span className="text-xs font-bold">In-app Alerts Enabled</span>
+                        <div className="flex items-center gap-4 pt-4 border-t border-gray-100 mt-2 relative z-10">
+                            <div className="flex items-center">
+                                <button
+                                    onClick={() => setSettings({ ...settings, enableNotifications: !settings.enableNotifications })}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0 ${settings.enableNotifications ? 'bg-indigo-600' : 'bg-gray-200'}`}
+                                >
+                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${settings.enableNotifications ? 'translate-x-6' : 'translate-x-1'}`} />
+                                </button>
+                            </div>
+                            <span className="text-sm font-bold text-dark">In-app Alerts Enabled</span>
                         </div>
                     </div>
 
-                    <div className="p-8 bg-white border border-gray-100 rounded-[40px] shadow-sm flex flex-col gap-6">
-                        <h4 className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Connect Support</h4>
+                    <div className="p-8 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-6">
+                        <h4 className="text-lg font-heading font-bold text-dark">Support Contacts</h4>
                         <div className="flex flex-col gap-4">
-                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-                                <Mail className="w-4 h-4 text-gray-400" />
-                                <span className="text-xs font-bold text-dark">{settings.contactEmail}</span>
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                <div className="w-10 h-10 bg-white shadow-sm border border-gray-100 rounded-xl flex items-center justify-center">
+                                    <Mail className="w-5 h-5 text-gray-500" />
+                                </div>
+                                <span className="text-sm font-semibold text-dark">{settings.contactEmail}</span>
                             </div>
-                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl">
-                                <Smartphone className="w-4 h-4 text-gray-400" />
-                                <span className="text-xs font-bold text-dark">{settings.phoneNumber}</span>
+                            <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                                <div className="w-10 h-10 bg-white shadow-sm border border-gray-100 rounded-xl flex items-center justify-center">
+                                    <Smartphone className="w-5 h-5 text-gray-500" />
+                                </div>
+                                <span className="text-sm font-semibold text-dark">{settings.phoneNumber}</span>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="p-6 bg-gray-50 rounded-3xl border border-gray-200 border-dashed flex flex-col items-center justify-center text-center gap-2 mt-auto">
+                        <span className="text-xs font-bold text-muted uppercase tracking-wider">Version Info</span>
+                        <span className="text-sm font-medium text-dark">Blossom Admin v4.2.0</span>
                     </div>
                 </div>
             </div>
