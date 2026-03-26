@@ -88,7 +88,7 @@ const Navbar = () => {
         <>
             <nav
                 className={`fixed top-0 left-0 right-0 z-[100] transition-all duration-700 ${
-                    isScrolled ? 'py-4 glass border-b border-gray-100' : 'py-8 bg-transparent'
+                    isScrolled ? 'py-4 glass border-b border-primary/10' : 'py-8 bg-transparent'
                 }`}
             >
                 {/* Scroll Progress Indicator */}
@@ -136,7 +136,7 @@ const Navbar = () => {
                     {/* Right Actions */}
                     <div className="flex items-center gap-2 sm:gap-4 lg:gap-6 text-dark/70">
                         {isAuthenticated && user?.role === 'ADMIN' && (
-                            <Link to="/admin" className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group hidden sm:block" title="Admin Dashboard">
+                            <Link to="/admin" className="p-2 hover:bg-primary/10 rounded-full transition-colors relative group hidden sm:block" title="Admin Dashboard">
                                 <Shield className="w-5 h-5 text-primary group-hover:text-secondary group-hover:scale-105 transition-all" />
                             </Link>
                         )}
@@ -148,7 +148,7 @@ const Navbar = () => {
                                         setIsNotifOpen(!isNotifOpen);
                                         if (!isNotifOpen) fetchNotifications();
                                     }}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group"
+                                    className="p-2 hover:bg-primary/10 rounded-full transition-colors relative group"
                                 >
                                     <Bell className="w-5 h-5 group-hover:text-primary transition-colors" />
                                     {unreadCount > 0 && (
@@ -162,16 +162,16 @@ const Navbar = () => {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: 10 }}
-                                            className="absolute right-0 mt-4 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden z-[110]"
+                                            className="absolute right-0 mt-4 w-80 bg-light rounded-2xl shadow-2xl border border-primary/10 overflow-hidden z-[110]"
                                         >
-                                            <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                                            <div className="p-4 border-b border-primary/10 flex items-center justify-between bg-light">
                                                 <span className="font-bold text-xs uppercase tracking-widest text-dark">Notifications</span>
                                                 <button onClick={handleMarkAllRead} className="text-[10px] font-bold text-secondary uppercase hover:text-dark transition-colors">Mark all read</button>
                                             </div>
                                             <div className="max-h-96 overflow-y-auto custom-scrollbar">
                                                 {notifications.length > 0 ? (
                                                     notifications.map((notif: any) => (
-                                                        <div key={notif.id} className={`p-4 border-b border-gray-50 hover:bg-gray-50 transition-colors ${!notif.isRead ? 'bg-secondary/5' : ''}`}>
+                                                        <div key={notif.id} className={`p-4 border-b border-white/5 hover:bg-primary/5 transition-colors ${!notif.isRead ? 'bg-secondary/5' : ''}`}>
                                                             <p className="text-sm font-medium text-dark leading-tight">{notif.message}</p>
                                                             <span className="text-[10px] text-muted mt-2 block">{new Date(notif.createdAt).toLocaleDateString()}</span>
                                                         </div>
@@ -180,7 +180,7 @@ const Navbar = () => {
                                                     <div className="p-10 text-center text-muted text-sm font-medium italic">No new styling adornments found.</div>
                                                 )}
                                             </div>
-                                            <div className="p-3 bg-gray-50 border-t border-gray-100 flex justify-center">
+                                            <div className="p-3 bg-light border-t border-primary/10 flex justify-center">
                                                 <button onClick={handleToggleSubscription} className="text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 text-dark/70 hover:text-dark">
                                                     {isSubscribed ? <BellRing className="w-3.5 h-3.5" /> : <Bell className="w-3.5 h-3.5" />}
                                                     {isSubscribed ? 'Disable Updates' : 'Notify me of New Drops'}
@@ -192,29 +192,29 @@ const Navbar = () => {
                             </div>
                         )}
 
-                        <Link to="/wishlist" className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group" title="Wishlist">
+                        <Link to="/wishlist" className="p-2 hover:bg-primary/10 rounded-full transition-colors relative group" title="Wishlist">
                             <Heart className="w-5 h-5 group-hover:text-accent transition-colors" />
                             {wishlistCount > 0 && (
                                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-accent border-2 border-white rounded-full" />
                             )}
                         </Link>
 
-                        <button onClick={() => setIsCartOpen(true)} className="p-2 hover:bg-gray-100 rounded-full transition-colors relative group" title="Shopping Bag">
+                        <button onClick={() => setIsCartOpen(true)} className="p-2 hover:bg-primary/10 rounded-full transition-colors relative group" title="Shopping Bag">
                             <ShoppingBag className="w-5 h-5 group-hover:text-dark transition-colors" />
                             {cartCount > 0 && (
                                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-secondary border-2 border-white rounded-full" />
                             )}
                         </button>
 
-                        <div className="hidden sm:flex items-center gap-4 border-l border-gray-100 pl-6 ml-2">
+                        <div className="hidden sm:flex items-center gap-4 border-l border-primary/10 pl-6 ml-2">
                             {isAuthenticated ? (
                                 <div className="flex items-center gap-4">
                                     <Link to="/profile" className="flex items-center gap-3 group">
-                                        <div className="w-10 h-10 rounded-full bg-gray-50 border border-gray-200 flex items-center justify-center text-dark font-heading font-bold text-lg group-hover:bg-dark group-hover:text-white transition-all duration-300">
+                                        <div className="w-10 h-10 rounded-full bg-primary/10 border border-primary/15 flex items-center justify-center text-dark font-heading font-bold text-lg group-hover:bg-dark group-hover:text-dark transition-all duration-300">
                                             {user?.name?.charAt(0).toUpperCase()}
                                         </div>
                                     </Link>
-                                    <button onClick={logout} className="p-2 hover:bg-red-50 hover:text-red-600 rounded-full transition-all duration-300" title="Sign Out">
+                                    <button onClick={logout} className="p-2 hover:bg-red-900/20 hover:text-red-500 rounded-full transition-all duration-300" title="Sign Out">
                                         <LogOut className="w-5 h-5" />
                                     </button>
                                 </div>
@@ -227,7 +227,7 @@ const Navbar = () => {
 
                         <button
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            className="lg:hidden p-2 hover:bg-gray-100 rounded-full transition-colors text-dark"
+                            className="lg:hidden p-2 hover:bg-primary/10 rounded-full transition-colors text-dark"
                         >
                             {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>
@@ -253,7 +253,7 @@ const Navbar = () => {
                                 <Link to="/my-orders" onClick={() => setIsMobileMenuOpen(false)} className="hover:text-primary transition-colors">My Orders</Link>
                             )}
                         </div>
-                        <div className="mt-auto border-t border-gray-100 pt-8 flex flex-col gap-6">
+                        <div className="mt-auto border-t border-primary/10 pt-8 flex flex-col gap-6">
                             {isAuthenticated && user?.role === 'ADMIN' && (
                                 <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="flex items-center gap-3 text-dark hover:text-primary font-ui font-semibold text-lg">
                                     <Shield className="w-5 h-5" /> Admin Dashboard

@@ -189,15 +189,15 @@ const ProductsAdmin = () => {
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="flex items-center gap-2 bg-dark text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-md hover:shadow-lg hover:bg-black transition-all duration-300"
+                    className="flex items-center gap-2 bg-dark text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-md hover:shadow-lg hover:bg-primary-dark transition-all duration-300"
                 >
                     <Plus className="w-5 h-5" />
                     <span>Add Product</span>
                 </button>
             </div>
 
-            <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white rounded-3xl border border-primary/10 overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-primary/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="relative w-full sm:w-96 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-dark transition-colors" />
                         <input
@@ -205,10 +205,10 @@ const ProductsAdmin = () => {
                             placeholder="Search products..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-11 pr-6 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm focus:outline-none transition-all placeholder:text-muted"
+                            className="w-full pl-11 pr-6 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm focus:outline-none transition-all placeholder:text-muted"
                         />
                     </div>
-                    <div className="flex items-center gap-4 text-sm font-semibold text-dark bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center gap-4 text-sm font-semibold text-dark bg-white px-4 py-2 rounded-xl border border-primary/10 shadow-sm">
                         Total: {products.length}
                     </div>
                 </div>
@@ -216,7 +216,7 @@ const ProductsAdmin = () => {
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse min-w-[800px]">
                         <thead>
-                            <tr className="bg-gray-50/50 border-b border-gray-100">
+                            <tr className="bg-white/50 border-b border-primary/10">
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">Product</th>
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">Category</th>
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">Price</th>
@@ -240,10 +240,10 @@ const ProductsAdmin = () => {
                                 </tr>
                             ) : (
                                 products.map((prod) => (
-                                    <tr key={prod.id} className="hover:bg-gray-50/50 transition-colors group">
+                                    <tr key={prod.id} className="hover:bg-primary/50 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 flex-shrink-0 flex items-center justify-center p-1.5">
+                                                <div className="w-12 h-12 bg-white rounded-xl overflow-hidden shadow-sm border border-primary/10 flex-shrink-0 flex items-center justify-center p-1.5">
                                                     {prod.imageUrl ? (
                                                         <img 
                                                             src={resolveImageUrl(prod.imageUrl)} 
@@ -261,7 +261,7 @@ const ProductsAdmin = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-medium text-dark bg-gray-100 px-2.5 py-1 rounded-full">{prod.category?.name}</span>
+                                            <span className="text-sm font-medium text-dark bg-light px-2.5 py-1 rounded-full">{prod.category?.name}</span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-bold text-dark">
@@ -276,7 +276,7 @@ const ProductsAdmin = () => {
                                         <td className="px-6 py-4">
                                             <button
                                                 onClick={() => handleToggleActive(prod.id)}
-                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${prod.isActive ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-gray-100 text-muted border-gray-200 hover:bg-gray-200'}`}
+                                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all ${prod.isActive ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100' : 'bg-light text-muted border-primary/10 hover:bg-white/15'}`}
                                             >
                                                 {prod.isActive ? <ToggleRight className="w-4 h-4 text-green-600" /> : <ToggleLeft className="w-4 h-4" />}
                                                 {prod.isActive ? 'Active' : 'Inactive'}
@@ -286,7 +286,7 @@ const ProductsAdmin = () => {
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => handleOpenModal(prod)}
-                                                    className="p-2 rounded-lg hover:bg-gray-100 text-dark transition-colors"
+                                                    className="p-2 rounded-lg hover:bg-light text-dark transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit3 className="w-4 h-4" />
@@ -323,9 +323,9 @@ const ProductsAdmin = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 sm:p-8 overflow-hidden overflow-y-auto max-h-[90vh] custom-scrollbar border border-gray-100"
+                            className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl p-6 sm:p-8 overflow-hidden overflow-y-auto max-h-[90vh] custom-scrollbar border border-primary/10"
                         >
-                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-primary/10">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-2xl font-heading font-bold text-dark tracking-tight">
                                         {editingProduct ? 'Edit Product' : 'Add New Product'}
@@ -334,7 +334,7 @@ const ProductsAdmin = () => {
                                 </div>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    className="p-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors border border-gray-200"
+                                    className="p-2 bg-white rounded-full hover:bg-light transition-colors border border-primary/10"
                                 >
                                     <X className="w-5 h-5 text-dark" />
                                 </button>
@@ -357,7 +357,7 @@ const ProductsAdmin = () => {
                                                 slug: editingProduct ? prev.slug : val.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '')
                                             }));
                                         }}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none placeholder:text-muted"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none placeholder:text-muted"
                                         placeholder="e.g. Classic White T-Shirt"
                                     />
                                 </div>
@@ -370,7 +370,7 @@ const ProductsAdmin = () => {
                                         required
                                         value={formData.description}
                                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none min-h-[120px] resize-none placeholder:text-muted"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none min-h-[120px] resize-none placeholder:text-muted"
                                         placeholder="Enter product description..."
                                     />
                                 </div>
@@ -385,7 +385,7 @@ const ProductsAdmin = () => {
                                         required
                                         value={formData.price}
                                         onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
                                     />
                                 </div>
 
@@ -396,7 +396,7 @@ const ProductsAdmin = () => {
                                         required
                                         value={formData.stock}
                                         onChange={(e) => setFormData(prev => ({ ...prev, stock: Number(e.target.value) }))}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
                                     />
                                 </div>
 
@@ -412,7 +412,7 @@ const ProductsAdmin = () => {
                                         required
                                         value={formData.rating}
                                         onChange={(e) => setFormData(prev => ({ ...prev, rating: Number(e.target.value) }))}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
                                     />
                                 </div>
 
@@ -424,7 +424,7 @@ const ProductsAdmin = () => {
                                         required
                                         value={formData.categoryId}
                                         onChange={(e) => setFormData(prev => ({ ...prev, categoryId: e.target.value }))}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none cursor-pointer"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none cursor-pointer"
                                     >
                                         <option value="" disabled>Select a category</option>
                                         {categories.map(cat => (
@@ -447,7 +447,7 @@ const ProductsAdmin = () => {
                                         />
                                         <label
                                             htmlFor="product-image"
-                                            className="flex-1 flex items-center gap-4 px-6 py-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 hover:border-dark hover:bg-gray-100 cursor-pointer transition-all group"
+                                            className="flex-1 flex items-center gap-4 px-6 py-4 bg-white rounded-2xl border-2 border-dashed border-primary/10 hover:border-dark hover:bg-light cursor-pointer transition-all group"
                                         >
                                             <div className="w-10 h-10 bg-white shadow-sm rounded-xl flex items-center justify-center text-muted group-hover:text-dark transition-colors">
                                                 <ImageIcon className="w-5 h-5" />
@@ -462,8 +462,8 @@ const ProductsAdmin = () => {
                                             </div>
                                         </label>
                                         {!imageFile && formData.imageUrl && (
-                                            <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-2xl border border-gray-200">
-                                                <div className="w-12 h-12 bg-white rounded-xl p-1 border border-gray-100 shadow-sm flex items-center justify-center">
+                                            <div className="flex items-center gap-3 px-4 py-2 bg-white rounded-2xl border border-primary/10">
+                                                <div className="w-12 h-12 bg-white rounded-xl p-1 border border-primary/10 shadow-sm flex items-center justify-center">
                                                     <img 
                                                         src={resolveImageUrl(formData.imageUrl)} 
                                                         className="w-full h-full object-contain mix-blend-multiply" 
@@ -483,7 +483,7 @@ const ProductsAdmin = () => {
                                         required
                                         value={formData.slug}
                                         onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '') }))}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
                                         placeholder="classic-white-tshirt"
                                     />
                                 </div>
@@ -495,18 +495,18 @@ const ProductsAdmin = () => {
                                     </div>
                                 )}
 
-                                <div className="md:col-span-2 flex justify-end gap-3 mt-4 pt-6 border-t border-gray-100">
+                                <div className="md:col-span-2 flex justify-end gap-3 mt-4 pt-6 border-t border-primary/10">
                                     <button
                                         type="button"
                                         onClick={() => setIsModalOpen(false)}
-                                        className="px-6 py-3 rounded-xl font-semibold text-sm text-dark bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                                        className="px-6 py-3 rounded-xl font-semibold text-sm text-dark bg-white border border-primary/10 hover:bg-white transition-colors"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="px-8 py-3 bg-dark text-white rounded-xl font-semibold text-sm shadow-md hover:shadow-lg hover:bg-black disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center min-w-[140px]"
+                                        className="px-8 py-3 bg-dark text-white rounded-xl font-semibold text-sm shadow-md hover:shadow-lg hover:bg-primary-dark disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center min-w-[140px]"
                                     >
                                         {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingProduct ? 'Save Changes' : 'Create Product')}
                                     </button>

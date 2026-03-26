@@ -39,10 +39,10 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                         animate={{ x: 0 }}
                         exit={{ x: '100%' }}
                         transition={{ type: "tween", duration: 0.3, ease: "circOut" }}
-                        className="relative w-full max-w-md bg-[#FFFBF9] h-full shadow-2xl flex flex-col overflow-hidden"
+                        className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col overflow-hidden"
                     >
                         {/* Header */}
-                        <div className="p-6 md:p-8 flex items-center justify-between border-b border-gray-100 bg-white">
+                        <div className="p-6 md:p-8 flex items-center justify-between border-b border-primary/10 bg-light">
                             <div className="flex items-center gap-3">
                                 <h2 className="text-xl font-heading font-bold text-dark tracking-tight">Shopping Cart</h2>
                                 <span className="text-xs font-ui font-medium text-muted px-2 py-0.5 rounded-full bg-light">{items.length}</span>
@@ -80,7 +80,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                                         key={item.id}
                                         className="flex gap-4 group"
                                     >
-                                        <div className="w-24 h-28 overflow-hidden rounded-xl bg-light flex-shrink-0 border border-gray-100 flex items-center justify-center">
+                                        <div className="w-24 h-28 overflow-hidden rounded-xl bg-light flex-shrink-0 border border-primary/10 flex items-center justify-center">
                                             {item.imageUrl ? (
                                                 <img src={resolveImageUrl(item.imageUrl)} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             ) : (
@@ -102,7 +102,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
                                             </div>
 
                                             <div className="flex items-center justify-between mt-2">
-                                                <div className="flex items-center bg-white rounded-xl p-1 border border-primary/10 shadow-sm">
+                                                <div className="flex items-center bg-light rounded-xl p-1 border border-primary/20 shadow-sm">
                                                     <button
                                                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
                                                         className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-primary/10 transition-all text-muted hover:text-primary"
@@ -127,7 +127,7 @@ const CartDrawer = ({ isOpen, onClose }: CartDrawerProps) => {
 
                         {/* Footer */}
                         {items.length > 0 && (
-                            <div className="p-6 md:p-8 bg-white border-t border-gray-100 flex flex-col gap-6 shadow-[0_-10px_40px_rgba(0,0,0,0.03)] z-10">
+                            <div className="p-6 md:p-8 bg-light border-t border-primary/10 flex flex-col gap-6 shadow-[0_-10px_40px_rgba(0,0,0,0.3)] z-10">
                                 <div className="flex flex-col gap-2">
                                     <div className="flex items-end justify-between">
                                         <span className="text-sm font-ui font-medium text-muted">Subtotal</span>

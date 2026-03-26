@@ -69,7 +69,7 @@ const Register = () => {
     };
 
     return (
-        <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
+        <div className="min-h-screen bg-surface flex flex-col items-center justify-center p-6">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -83,7 +83,7 @@ const Register = () => {
                         <h1 className="text-4xl font-black text-dark tracking-tighter text-center">
                             {step === 1 ? 'Join Blossom.' : 'Check Your Inbox.'}
                         </h1>
-                        <p className="text-gray-400 font-medium text-center">
+                        <p className="text-dark/50 font-medium text-center">
                             {step === 1 ? 'Create your professional skin care account' : `We've sent a 6-digit code to ${formData.email}`}
                         </p>
                     </div>
@@ -93,7 +93,7 @@ const Register = () => {
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="mb-8 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600"
+                        className="mb-8 p-4 bg-red-900/20 border border-red-800/30 rounded-2xl flex items-center gap-3 text-red-400"
                     >
                         <AlertCircle className="w-5 h-5 flex-shrink-0" />
                         <span className="text-xs font-bold">{error}</span>
@@ -118,7 +118,7 @@ const Register = () => {
                                     type="text" required
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                    className="w-full px-6 py-4 bg-light border-2 border-transparent focus:bg-light focus:border-primary/30 rounded-3xl text-sm font-medium text-dark focus:outline-none transition-all"
                                     placeholder="Jane Doe"
                                 />
                             </div>
@@ -130,7 +130,7 @@ const Register = () => {
                                     type="email" required
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                    className="w-full px-6 py-4 bg-light border-2 border-transparent focus:bg-light focus:border-primary/30 rounded-3xl text-sm font-medium text-dark focus:outline-none transition-all"
                                     placeholder="your@email.com"
                                 />
                             </div>
@@ -142,7 +142,7 @@ const Register = () => {
                                     type="password" required
                                     value={formData.password}
                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-transparent focus:bg-white focus:border-primary/20 rounded-3xl text-sm font-medium focus:outline-none transition-all"
+                                    className="w-full px-6 py-4 bg-light border-2 border-transparent focus:bg-light focus:border-primary/30 rounded-3xl text-sm font-medium text-dark focus:outline-none transition-all"
                                     placeholder="Min. 6 characters"
                                     minLength={6}
                                 />
@@ -177,7 +177,7 @@ const Register = () => {
                                     autoFocus
                                     value={otp}
                                     onChange={(e) => setOtp(e.target.value)}
-                                    className="w-full px-6 py-5 bg-primary/5 border-2 border-primary/20 focus:bg-white rounded-3xl text-center text-2xl font-black tracking-[0.5em] focus:outline-none transition-all"
+                                    className="w-full px-6 py-5 bg-primary/10 border-2 border-primary/20 focus:bg-light rounded-3xl text-center text-2xl font-black tracking-[0.5em] focus:outline-none text-dark transition-all"
                                     placeholder="000000"
                                 />
                             </div>
@@ -197,7 +197,7 @@ const Register = () => {
                                 <button
                                     type="button"
                                     onClick={handleResendOtp}
-                                    className="text-[10px] font-black text-gray-400 hover:text-primary uppercase tracking-widest transition-colors self-center"
+                                    className="text-[10px] font-black text-dark/40 hover:text-primary uppercase tracking-widest transition-colors self-center"
                                 >
                                     Didn't receive a code? Resend
                                 </button>
@@ -206,8 +206,8 @@ const Register = () => {
                     )}
                 </AnimatePresence>
 
-                <div className="mt-12 pt-8 border-t border-gray-100 flex flex-col items-center gap-2">
-                    <span className="text-xs text-gray-400 font-medium">Already have an account?</span>
+                <div className="mt-12 pt-8 border-t border-primary/10 flex flex-col items-center gap-2">
+                    <span className="text-xs text-dark/40 font-medium">Already have an account?</span>
                     <Link to="/login" className="text-xs font-black text-dark hover:text-primary transition-colors uppercase tracking-widest">Sign In Instead</Link>
                 </div>
             </motion.div>

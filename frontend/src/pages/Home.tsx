@@ -43,7 +43,7 @@ const ProductCard = ({ product, addItem }: { product: any, addItem: any }) => {
         >
             <Link
                 to={`/products/${product.slug}`}
-                className="relative aspect-[3/4] rounded-[50px] overflow-hidden bg-white flex items-center justify-center p-10 transition-all duration-1000 group-hover:shadow-premium border border-primary/5 shadow-sm"
+                className="relative block aspect-[3/4] rounded-[50px] overflow-hidden bg-light transition-all duration-1000 group-hover:shadow-premium border border-primary/5 shadow-sm"
             >
                 {/* Status Badge */}
                 <div className="absolute top-8 left-8 z-20">
@@ -57,9 +57,6 @@ const ProductCard = ({ product, addItem }: { product: any, addItem: any }) => {
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-[1.5s] group-hover:scale-110"
                 />
-                    <h3 className="text-xl font-heading font-medium text-dark leading-tight group-hover:text-primary transition-colors italic">
-                        {sanitizeProductName(product.name)}
-                    </h3>
                 {/* Interaction Layer */}
                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 
@@ -73,13 +70,13 @@ const ProductCard = ({ product, addItem }: { product: any, addItem: any }) => {
                             }
                             addItem(product); 
                         }}
-                        className="w-full py-5 bg-primary text-dark rounded-2xl font-bold text-[10px] uppercase tracking-[0.3em] transition-all hover:bg-primary-dark flex items-center justify-center gap-3 shadow-sm hover:shadow-lg"
+                        className="w-full py-5 bg-primary text-white rounded-2xl font-bold text-[10px] uppercase tracking-[0.3em] transition-all hover:bg-primary-dark flex items-center justify-center gap-3 shadow-sm hover:shadow-lg"
                     >
                         <ShoppingBag className="w-4 h-4" /> Add to Collection
                     </button>
                     <button
                         onClick={(e) => { e.preventDefault(); navigate(`/products/${product.slug}`); }}
-                        className="w-full py-5 bg-white/95 backdrop-blur-md text-dark rounded-2xl font-bold text-[10px] uppercase tracking-[0.3em] transition-all hover:bg-white flex items-center justify-center gap-3 border border-primary/20 shadow-sm hover:shadow-md"
+                        className="w-full py-5 bg-white/95 backdrop-blur-md text-dark rounded-2xl font-bold text-[10px] uppercase tracking-[0.3em] transition-all hover:bg-light flex items-center justify-center gap-3 border border-primary/20 shadow-sm hover:shadow-md"
                     >
                         <Eye className="w-4 h-4" /> View Details
                     </button>
@@ -206,11 +203,11 @@ const Home = () => {
                             <MagneticButton>
                                 <Link
                                     to="/shop"
-                                    className="group relative inline-flex items-center gap-6 px-14 py-7 bg-primary text-dark rounded-full overflow-hidden transition-all duration-700 hover:scale-105 active:scale-95 shadow-premium"
+                                    className="group relative inline-flex items-center gap-6 px-14 py-7 bg-primary text-white rounded-full overflow-hidden transition-all duration-700 hover:scale-105 active:scale-95 shadow-premium"
                                 >
-                                    <div className="absolute inset-0 bg-secondary translate-y-full group-hover:translate-y-0 transition-transform duration-700 ease-[0.16, 1, 0.3, 1]" />
-                                    <span className="relative z-10 text-[10px] font-bold uppercase tracking-[0.4em] group-hover:text-dark transition-colors duration-700">Shop the Curation</span>
-                                    <MoveRight className="relative z-10 w-5 h-5 transition-transform duration-700 group-hover:translate-x-3 group-hover:text-dark" />
+                                    <div className="absolute inset-0 bg-primary-dark translate-y-full group-hover:translate-y-0 transition-transform duration-700" />
+                                    <span className="relative z-10 text-[10px] font-bold uppercase tracking-[0.4em] text-white transition-colors duration-700">Shop the Curation</span>
+                                    <MoveRight className="relative z-10 w-5 h-5 text-white transition-transform duration-700 group-hover:translate-x-3" />
                                 </Link>
                             </MagneticButton>
 
@@ -281,7 +278,7 @@ const Home = () => {
                             
                             <Link to="/shop" className="group flex items-center gap-8 mt-4">
                                 <MagneticButton>
-                                    <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-dark group-hover:bg-secondary transition-colors duration-700">
+                                    <div className="w-16 h-16 rounded-full bg-primary flex items-center justify-center text-white group-hover:bg-primary-dark transition-colors duration-700">
                                         <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                                     </div>
                                 </MagneticButton>
