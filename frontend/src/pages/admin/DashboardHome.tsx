@@ -57,7 +57,7 @@ const DashboardHome = () => {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="p-6 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-6 group hover:shadow-md transition-shadow"
+                        className="p-6 bg-white rounded-3xl border border-primary/10 shadow-sm flex flex-col gap-6 group hover:shadow-md transition-shadow"
                     >
                         <div className="flex items-center justify-between">
                             <div className={`p-3 rounded-2xl ${stat.color}`}>
@@ -79,8 +79,8 @@ const DashboardHome = () => {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                <div className="lg:col-span-2 p-8 bg-white rounded-3xl border border-gray-100 shadow-sm">
-                    <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                <div className="lg:col-span-2 p-8 bg-white rounded-3xl border border-primary/10 shadow-sm">
+                    <div className="flex items-center justify-between mb-8 pb-4 border-b border-primary/10">
                         <h3 className="text-xl font-heading font-bold text-dark tracking-tight">Recent Orders</h3>
                         <Link to="/admin/orders" className="text-sm font-semibold text-dark hover:text-secondary flex items-center gap-1 transition-colors">
                             View All <ArrowUpRight className="w-4 h-4" />
@@ -89,9 +89,9 @@ const DashboardHome = () => {
                     {stats?.recentOrders && stats.recentOrders.length > 0 ? (
                         <div className="flex flex-col gap-3">
                             {stats.recentOrders.map((order: any) => (
-                                <div key={order.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors">
+                                <div key={order.id} className="flex items-center justify-between p-4 bg-white rounded-2xl border border-primary/10 hover:border-primary/10 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-gray-100 flex items-center justify-center flex-shrink-0">
+                                        <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-primary/10 flex items-center justify-center flex-shrink-0">
                                             <ShoppingBag className="w-5 h-5 text-muted" />
                                         </div>
                                         <div className="flex flex-col">
@@ -113,7 +113,7 @@ const DashboardHome = () => {
                             ))}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center p-12 bg-gray-50 rounded-2xl border border-dashed border-gray-200 text-center gap-3">
+                        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-dashed border-primary/10 text-center gap-3">
                             <ShoppingBag className="w-8 h-8 text-gray-300" />
                             <span className="text-sm font-semibold text-muted">No orders yet.</span>
                         </div>
@@ -122,7 +122,7 @@ const DashboardHome = () => {
 
                 <div className="flex flex-col gap-6 lg:gap-8">
                     {/* Subscriber Count Card */}
-                    <div className="p-8 bg-white rounded-3xl border border-gray-100 shadow-sm flex flex-col gap-6">
+                    <div className="p-8 bg-white rounded-3xl border border-primary/10 shadow-sm flex flex-col gap-6">
                         <div className="flex items-center justify-between">
                             <div className="p-3 rounded-2xl bg-amber-50 text-amber-600 border border-amber-100">
                                 <Bell className="w-5 h-5" />
@@ -132,7 +132,7 @@ const DashboardHome = () => {
                             <span className="text-xs font-bold uppercase tracking-wider text-muted">Subscribers</span>
                             <span className="text-4xl font-heading font-bold text-dark tracking-tight">{stats?.subscriberCount || 0}</span>
                         </div>
-                        <p className="text-sm text-muted font-medium bg-gray-50 p-4 rounded-xl border border-gray-100">
+                        <p className="text-sm text-muted font-medium bg-white p-4 rounded-xl border border-primary/10">
                             Users subscribed for new product notifications and marketing updates.
                         </p>
                     </div>

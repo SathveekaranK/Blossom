@@ -149,9 +149,9 @@ const Shop = () => {
     };
 
     return (
-        <div className="min-h-screen bg-surface pt-24">
+        <div className="min-h-screen bg-surface pt-16">
             {/* ═══ Collection Header ═══ */}
-            <header className="pt-32 pb-20 px-6 lg:px-12 text-center relative overflow-hidden">
+            <header className="pt-0 pb-2 px-4 lg:px-8 text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-primary/[0.01] -z-10" />
                 
                 <motion.div
@@ -160,37 +160,29 @@ const Shop = () => {
                     transition={{ duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
                     className="max-w-4xl mx-auto"
                 >
-                    <motion.span 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5, duration: 1 }}
-                        className="text-[10px] md:text-xs font-bold uppercase tracking-[0.8em] text-primary mb-8 block ml-[0.8em]"
-                    >
-                        T H E — S E L E C T I O N
-                    </motion.span>
-                    <h1 className="text-6xl md:text-9xl font-heading font-medium text-dark leading-none mb-12 tracking-tighter">
-                        <TextReveal text="Artisanal" className="text-primary italic font-light mr-4" />
+                    <h1 className="text-3xl md:text-5xl font-heading font-medium text-dark leading-tight mb-2 tracking-tighter">
+                        <TextReveal text="Artisanal" className="text-primary italic font-light mr-3" />
                         <TextReveal text="Adornments" />
                     </h1>
-                    <div className="w-24 h-px bg-primary/20 mx-auto mb-10" />
+                    <div className="w-16 h-px bg-primary/20 mx-auto mb-4" />
                     <motion.p 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1, duration: 1.2 }}
-                        className="text-lg md:text-xl text-dark/60 font-heading italic max-w-2xl mx-auto leading-relaxed"
+                        className="text-sm md:text-base text-dark/70 font-heading italic max-w-xl mx-auto leading-relaxed"
                     >
                         Explore our curation of delicate hair adornments, designed to be the soft highlight of your unique aesthetic journey.
                     </motion.p>
                 </motion.div>
             </header>
 
-            <div className="max-w-7xl mx-auto px-6 py-12">
+            <div className="max-w-7xl mx-auto px-6 py-2">
                 {/* Toolbar */}
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-6 mb-12">
-                    <div className="flex w-full lg:w-auto items-center gap-4">
+                <div className="flex flex-col lg:flex-row items-center justify-between gap-4 mb-8">
+                    <div className="flex w-full lg:w-auto items-center gap-3">
                         <button
                             onClick={() => setIsSidebarOpen(true)}
-                            className="flex items-center gap-2 px-5 py-3 bg-white text-dark rounded-[14px] border border-gray-200 shadow-sm hover:border-gray-300 transition-colors font-semibold text-sm shrink-0"
+                            className="flex items-center gap-2 px-5 py-3 bg-light text-dark rounded-[14px] border border-primary/10 shadow-sm hover:border-primary/15 transition-colors font-semibold text-sm shrink-0"
                         >
                             <Filter className="w-4 h-4 text-dark" />
                             <span>Filters</span>
@@ -203,7 +195,7 @@ const Shop = () => {
                                 placeholder="Search our adornments..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-12 pr-5 py-4 bg-white border border-primary/10 rounded-2xl shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/5 text-dark font-body text-sm outline-none transition-all placeholder:text-muted/40"
+                                className="w-full pl-12 pr-5 py-4 bg-light border border-primary/10 rounded-2xl shadow-sm focus:border-primary focus:ring-1 focus:ring-primary/5 text-dark font-body text-sm outline-none transition-all placeholder:text-muted/40"
                             />
                         </form>
                     </div>
@@ -216,7 +208,7 @@ const Shop = () => {
                         <div className="relative" ref={sortRef}>
                             <button
                                 onClick={() => setIsSortOpen(!isSortOpen)}
-                                className="flex items-center gap-2 bg-white border border-gray-200 rounded-[14px] shadow-sm px-5 py-3 hover:border-gray-300 transition-colors"
+                                className="flex items-center gap-2 bg-light border border-primary/10 rounded-[14px] shadow-sm px-5 py-3 hover:border-primary/15 transition-colors"
                             >
                                 <span className="text-sm font-medium text-muted">Sort by:</span>
                                 <span className="text-sm font-semibold text-dark">{SORT_OPTIONS.find(opt => opt.value === currentSort)?.label || 'Recent'}</span>
@@ -229,7 +221,7 @@ const Shop = () => {
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         exit={{ opacity: 0, y: 10 }}
-                                        className="absolute right-0 top-full mt-2 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 z-50 py-2 overflow-hidden"
+                                        className="absolute right-0 top-full mt-2 w-56 bg-light rounded-2xl shadow-xl border border-primary/10 z-50 py-2 overflow-hidden"
                                     >
                                         {SORT_OPTIONS.map((option) => (
                                             <button
@@ -240,7 +232,7 @@ const Shop = () => {
                                                     navigate(`/shop?${newParams.toString()}`);
                                                     setIsSortOpen(false);
                                                 }}
-                                                className={`w-full flex items-center justify-between px-5 py-2.5 hover:bg-gray-50 transition-colors ${currentSort === option.value ? 'bg-gray-50/50' : ''}`}
+                                                className={`w-full flex items-center justify-between px-5 py-2.5 hover:bg-primary/5 transition-colors ${currentSort === option.value ? 'bg-white/5' : ''}`}
                                             >
                                                 <span className={`text-sm font-medium ${currentSort === option.value ? 'text-dark font-semibold' : 'text-muted'}`}>
                                                     {option.label}
@@ -279,7 +271,7 @@ const Shop = () => {
                         </div>
                         <button
                             onClick={() => { setSearch(''); navigate('/shop'); }}
-                            className="px-12 py-5 bg-primary text-surface rounded-full text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-black transition-all shadow-premium"
+                            className="px-12 py-5 bg-primary text-surface rounded-full text-[10px] font-bold uppercase tracking-[0.4em] hover:bg-primary-dark transition-all shadow-premium"
                         >
                             Explore All Creations
                         </button>
@@ -287,7 +279,7 @@ const Shop = () => {
                 ) : (
                     <motion.div
                         layout
-                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-24"
+                        className="grid grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-6 md:gap-8 gap-y-16"
                     >
                         <AnimatePresence mode="popLayout">
                             {products.map((product, idx) => (
@@ -304,7 +296,7 @@ const Shop = () => {
                                     }}
                                     className="group flex flex-col gap-8"
                                 >
-                                    <div className="relative aspect-[3/4] bg-white rounded-[60px] border border-primary/5 overflow-hidden transition-all duration-1000 group-hover:shadow-premium group-hover:border-primary/20 shadow-sm">
+                                    <div className="relative aspect-[3/4] bg-light rounded-[50px] border border-primary/5 overflow-hidden transition-all duration-1000 group-hover:shadow-premium group-hover:border-primary/20 shadow-sm">
                                         <Link to={`/products/${product.slug}`} className="absolute inset-0 z-10" />
                                         
                                         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
@@ -344,7 +336,7 @@ const Shop = () => {
                                                     if (!isAuthenticated) { navigate('/login'); return; }
                                                     toggleItem(product);
                                                 }}
-                                                className={`p-3.5 rounded-full backdrop-blur-xl shadow-premium border transition-all duration-700 hover:scale-110 active:scale-90 ${isInWishlist(product.id) ? 'bg-primary border-primary text-dark' : 'bg-white/60 border-primary/10 text-dark/40 hover:text-primary hover:border-primary/30'}`}
+                                                className={`p-3.5 rounded-full backdrop-blur-xl shadow-premium border transition-all duration-700 hover:scale-110 active:scale-90 ${isInWishlist(product.id) ? 'bg-primary border-primary text-dark' : 'bg-black/60 border-primary/10 text-dark/40 hover:text-primary hover:border-primary/30'}`}
                                             >
                                                 <Heart className={`w-4 h-4 ${isInWishlist(product.id) ? 'fill-dark' : ''}`} />
                                             </button>
@@ -360,7 +352,7 @@ const Shop = () => {
                                                         addItem(product);
                                                     }}
                                                     disabled={product.stock === 0}
-                                                    className={`w-full py-5 rounded-3xl font-bold text-[10px] uppercase tracking-[0.4em] shadow-premium backdrop-blur-md transition-all ${product.stock === 0 ? 'bg-gray-100 text-primary/30 cursor-not-allowed' : 'bg-primary text-surface hover:bg-black'}`}
+                                                    className={`w-full py-5 rounded-3xl font-bold text-[10px] uppercase tracking-[0.4em] shadow-premium backdrop-blur-md transition-all ${product.stock === 0 ? 'bg-light text-muted cursor-not-allowed' : 'bg-primary text-white hover:bg-primary-dark'}`}
                                                 >
                                                     {product.stock === 0 ? 'Out of Stock' : 'Add to Collection'}
                                                 </button>
@@ -377,14 +369,14 @@ const Shop = () => {
                                             {sanitizeCategoryName(product.category?.name) || "Aesthetic Adornment"}
                                         </motion.span>
                                         <Link to={`/products/${product.slug}`}>
-                                            <h3 className="text-2xl font-heading font-medium text-dark leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                                            <h3 className="text-2xl font-heading font-medium text-dark leading-tight hover:text-primary transition-colors line-clamp-1 italic">
                                                 {sanitizeProductName(product.name)}
                                             </h3>
                                         </Link>
                                         <div className="flex items-center gap-4">
-                                            <div className="h-px w-6 bg-primary/10 group-hover:w-10 transition-all duration-1000" />
-                                            <span className="font-bold text-dark/80 text-lg tracking-widest font-heading">₹{Number(product.price).toLocaleString()}</span>
-                                            <div className="h-px w-6 bg-primary/10 group-hover:w-10 transition-all duration-1000" />
+                                            <div className="h-px w-8 bg-primary/30 group-hover:w-10 transition-all duration-1000" />
+                                            <span className="font-bold text-sm tracking-widest uppercase text-dark/80">₹{Number(product.price).toLocaleString()}</span>
+                                            <div className="h-px w-8 bg-primary/30 group-hover:w-10 transition-all duration-1000" />
                                         </div>
                                     </div>
                                 </motion.div>
@@ -412,11 +404,11 @@ const Shop = () => {
                             transition={{ type: "tween", duration: 0.3, ease: "circOut" }}
                             className="relative w-full max-w-sm bg-white h-full shadow-2xl flex flex-col"
                         >
-                            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                            <div className="p-6 border-b border-primary/10 flex items-center justify-between">
                                 <h2 className="text-xl font-heading font-bold text-dark tracking-tight">Filters</h2>
                                 <button
                                     onClick={() => setIsSidebarOpen(false)}
-                                    className="p-2 hover:bg-gray-100 rounded-full transition-colors text-muted hover:text-dark"
+                                    className="p-2 hover:bg-primary/10 rounded-full transition-colors text-muted hover:text-dark"
                                 >
                                     <X className="w-5 h-5" />
                                 </button>
@@ -462,7 +454,7 @@ const Shop = () => {
                                     </div>
                                 </div>
 
-                                <div className="h-px bg-gray-100" />
+                                <div className="h-px bg-white/10" />
 
                                 {/* Price Range */}
                                 <div className="flex flex-col gap-4">
@@ -490,7 +482,7 @@ const Shop = () => {
                                 </div>
                             </div>
 
-                            <div className="p-6 border-t border-primary/5 bg-white grid grid-cols-2 gap-3">
+                            <div className="p-6 border-t border-primary/5 bg-light grid grid-cols-2 gap-3">
                                 <button
                                     onClick={() => { setSearch(''); navigate('/shop'); setIsSidebarOpen(false); }}
                                     className="py-3 px-4 border border-primary/10 rounded-2xl font-bold text-[10px] uppercase tracking-widest hover:bg-primary/5 transition-colors text-dark/60"

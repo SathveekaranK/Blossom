@@ -105,15 +105,15 @@ const CategoriesAdmin = () => {
                 </div>
                 <button
                     onClick={() => handleOpenModal()}
-                    className="flex items-center gap-2 bg-dark text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-md hover:shadow-lg hover:bg-black transition-all duration-300"
+                    className="flex items-center gap-2 bg-dark text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-md hover:shadow-lg hover:bg-primary-dark transition-all duration-300"
                 >
                     <Plus className="w-5 h-5" />
                     <span>Add Category</span>
                 </button>
             </div>
 
-            <div className="bg-white rounded-3xl border border-gray-100 overflow-hidden shadow-sm">
-                <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white rounded-3xl border border-primary/10 overflow-hidden shadow-sm">
+                <div className="p-6 border-b border-primary/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div className="relative w-full sm:w-96 group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-dark transition-colors" />
                         <input
@@ -121,10 +121,10 @@ const CategoriesAdmin = () => {
                             placeholder="Search categories..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full pl-11 pr-6 py-3 bg-gray-50 rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm focus:outline-none transition-all placeholder:text-muted"
+                            className="w-full pl-11 pr-6 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm focus:outline-none transition-all placeholder:text-muted"
                         />
                     </div>
-                    <div className="flex items-center gap-4 text-sm font-semibold text-dark bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 shadow-sm">
+                    <div className="flex items-center gap-4 text-sm font-semibold text-dark bg-white px-4 py-2 rounded-xl border border-primary/10 shadow-sm">
                         Total: {filteredCategories.length}
                     </div>
                 </div>
@@ -132,7 +132,7 @@ const CategoriesAdmin = () => {
                 <div className="overflow-x-auto custom-scrollbar">
                     <table className="w-full text-left border-collapse min-w-[700px]">
                         <thead>
-                            <tr className="bg-gray-50/50 border-b border-gray-100">
+                            <tr className="bg-white/50 border-b border-primary/10">
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">Category</th>
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">Slug</th>
                                 <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">Products</th>
@@ -154,10 +154,10 @@ const CategoriesAdmin = () => {
                                 </tr>
                             ) : (
                                 filteredCategories.map((cat) => (
-                                    <tr key={cat.id} className="hover:bg-gray-50/50 transition-colors group">
+                                    <tr key={cat.id} className="hover:bg-primary/50 transition-colors group">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 flex-shrink-0 flex items-center justify-center p-1.5 font-heading text-xl font-bold text-dark">
+                                                <div className="w-12 h-12 bg-white rounded-xl overflow-hidden shadow-sm border border-primary/10 flex-shrink-0 flex items-center justify-center p-1.5 font-heading text-xl font-bold text-dark">
                                                     {cat.imageUrl ? (
                                                         <img src={resolveImageUrl(cat.imageUrl)} alt={cat.name} className="w-full h-full object-contain mix-blend-multiply" />
                                                     ) : (
@@ -168,16 +168,16 @@ const CategoriesAdmin = () => {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <code className="text-xs font-semibold bg-gray-100 text-dark px-2.5 py-1 rounded-md border border-gray-200">/{cat.slug}</code>
+                                            <code className="text-xs font-semibold bg-light text-dark px-2.5 py-1 rounded-md border border-primary/10">/{cat.slug}</code>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className="text-sm font-medium text-dark bg-gray-100 px-3 py-1 rounded-full">{cat._count?.products || 0} items</span>
+                                            <span className="text-sm font-medium text-dark bg-light px-3 py-1 rounded-full">{cat._count?.products || 0} items</span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <button
                                                     onClick={() => handleOpenModal(cat)}
-                                                    className="p-2 rounded-lg hover:bg-gray-100 text-dark transition-colors"
+                                                    className="p-2 rounded-lg hover:bg-light text-dark transition-colors"
                                                     title="Edit"
                                                 >
                                                     <Edit3 className="w-4 h-4" />
@@ -214,9 +214,9 @@ const CategoriesAdmin = () => {
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 sm:p-8 overflow-hidden border border-gray-100"
+                            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl p-6 sm:p-8 overflow-hidden border border-primary/10"
                         >
-                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100">
+                            <div className="flex items-center justify-between mb-8 pb-4 border-b border-primary/10">
                                 <div className="flex flex-col gap-1">
                                     <h3 className="text-2xl font-heading font-bold text-dark tracking-tight">
                                         {editingCategory ? 'Edit Category' : 'New Category'}
@@ -225,7 +225,7 @@ const CategoriesAdmin = () => {
                                 </div>
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    className="p-2 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors border border-gray-200"
+                                    className="p-2 bg-white rounded-full hover:bg-light transition-colors border border-primary/10"
                                 >
                                     <X className="w-5 h-5 text-dark" />
                                 </button>
@@ -244,7 +244,7 @@ const CategoriesAdmin = () => {
                                             setName(e.target.value);
                                             if (!editingCategory) setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''));
                                         }}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
                                         placeholder="e.g. New Arrivals"
                                     />
                                 </div>
@@ -260,7 +260,7 @@ const CategoriesAdmin = () => {
                                             required
                                             value={slug}
                                             onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, ''))}
-                                            className="w-full pl-8 pr-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
+                                            className="w-full pl-8 pr-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
                                             placeholder="new-arrivals"
                                         />
                                     </div>
@@ -274,7 +274,7 @@ const CategoriesAdmin = () => {
                                         type="text"
                                         value={imageUrl}
                                         onChange={(e) => setImageUrl(e.target.value)}
-                                        className="w-full px-4 py-3 bg-white rounded-xl border border-gray-200 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
+                                        className="w-full px-4 py-3 bg-white rounded-xl border border-primary/10 focus:border-dark focus:ring-1 focus:ring-dark text-dark text-sm transition-all outline-none"
                                         placeholder="https://..."
                                     />
                                 </div>
@@ -286,18 +286,18 @@ const CategoriesAdmin = () => {
                                     </div>
                                 )}
 
-                                <div className="flex justify-end gap-3 mt-4 pt-6 border-t border-gray-100">
+                                <div className="flex justify-end gap-3 mt-4 pt-6 border-t border-primary/10">
                                     <button
                                         type="button"
                                         onClick={() => setIsModalOpen(false)}
-                                        className="px-6 py-3 rounded-xl font-semibold text-sm text-dark bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+                                        className="px-6 py-3 rounded-xl font-semibold text-sm text-dark bg-white border border-primary/10 hover:bg-white transition-colors"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="px-8 py-3 bg-dark text-white rounded-xl font-semibold text-sm shadow-md hover:shadow-lg hover:bg-black disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center min-w-[140px]"
+                                        className="px-8 py-3 bg-dark text-white rounded-xl font-semibold text-sm shadow-md hover:shadow-lg hover:bg-primary-dark disabled:bg-gray-300 disabled:text-gray-500 disabled:shadow-none disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center min-w-[140px]"
                                     >
                                         {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : (editingCategory ? 'Save Changes' : 'Create Category')}
                                     </button>

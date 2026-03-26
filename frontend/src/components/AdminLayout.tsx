@@ -29,7 +29,7 @@ const AdminLayout = () => {
     ];
 
     return (
-        <div className="flex min-h-screen bg-gray-50" style={{ scrollbarGutter: 'stable' }}>
+        <div className="flex min-h-screen bg-surface" style={{ scrollbarGutter: 'stable' }}>
             {/* Mobile Sidebar Overlay */}
             <AnimatePresence>
                 {isMobileMenuOpen && (
@@ -44,17 +44,17 @@ const AdminLayout = () => {
             </AnimatePresence>
 
             {/* Sidebar */}
-            <aside className={`fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-gray-200 flex flex-col p-6 gap-8 z-[60] transition-transform duration-300 lg:translate-x-0 overflow-y-auto custom-scrollbar ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed left-0 top-0 bottom-0 w-72 bg-white border-r border-primary/10 flex flex-col p-6 gap-8 z-[60] transition-transform duration-300 lg:translate-x-0 overflow-y-auto custom-scrollbar ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="flex items-center justify-between lg:block shrink-0">
                     <Link to="/" className="flex items-center gap-3 px-2 group">
-                        <div className="w-10 h-10 bg-gray-50 rounded-xl text-dark border border-gray-100 flex items-center justify-center group-hover:bg-gray-100 transition-all duration-300">
+                        <div className="w-10 h-10 bg-light rounded-xl text-dark border border-primary/10 flex items-center justify-center group-hover:bg-light transition-all duration-300">
                             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
                         </div>
                         <span className="font-heading font-bold text-xl text-dark tracking-tight">Main Site</span>
                     </Link>
                     <button 
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="lg:hidden p-2 hover:bg-gray-50 rounded-xl transition-colors border border-gray-200"
+                        className="lg:hidden p-2 hover:bg-primary/10 rounded-xl transition-colors border border-primary/10"
                     >
                         <CloseIcon className="w-5 h-5 text-muted" />
                     </button>
@@ -67,8 +67,8 @@ const AdminLayout = () => {
                             key={item.path}
                             to={item.path}
                             className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold transition-all duration-300 ${location.pathname === item.path
-                                    ? 'bg-dark text-white shadow-md'
-                                    : 'text-muted hover:bg-gray-50 hover:text-dark'
+                                                                    ? 'bg-primary text-dark shadow-md'
+                                    : 'text-muted hover:bg-primary/5 hover:text-dark'
                                 }`}
                         >
                             <item.icon className="w-5 h-5" />
@@ -77,12 +77,12 @@ const AdminLayout = () => {
                     ))}
                 </div>
 
-                <div className="mt-auto pt-6 border-t border-gray-100 flex flex-col gap-2 shrink-0">
+                <div className="mt-auto pt-6 border-t border-primary/10 flex flex-col gap-2 shrink-0">
                     <Link
                         to="/admin/settings"
                         className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl font-semibold transition-all duration-300 ${location.pathname === '/admin/settings'
-                                ? 'bg-dark text-white shadow-md'
-                                : 'text-muted hover:bg-gray-50 hover:text-dark'
+                                ? 'bg-primary text-dark shadow-md'
+                                : 'text-muted hover:bg-primary/5 hover:text-dark'
                             }`}
                     >
                         <Settings className="w-5 h-5" />
@@ -93,12 +93,12 @@ const AdminLayout = () => {
 
             {/* Main Content Area */}
             <main className="flex-1 lg:pl-72 flex flex-col min-h-screen min-w-0 overflow-hidden">
-                <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200 w-full">
+                <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-primary/10 w-full">
                     <div className="max-w-7xl mx-auto px-6 lg:px-10 py-5 flex items-center justify-between gap-4">
                         <div className="flex items-center gap-4 shrink-0">
                             <button
                                 onClick={() => setIsMobileMenuOpen(true)}
-                                className="lg:hidden p-2 bg-white rounded-xl border border-gray-200 hover:border-gray-300 transition-colors"
+                                className="lg:hidden p-2 bg-light rounded-xl border border-primary/10 hover:border-primary/15 transition-colors"
                             >
                                 <Menu className="w-5 h-5 text-dark" />
                             </button>
@@ -115,7 +115,7 @@ const AdminLayout = () => {
                                 <input
                                     type="text"
                                     placeholder="Search dashboard..."
-                                    className="pl-11 pr-6 py-2.5 bg-gray-50 rounded-full border border-gray-200 text-dark text-sm focus:border-dark focus:ring-1 focus:ring-dark focus:outline-none transition-all w-64 placeholder:text-muted"
+                                    className="pl-11 pr-6 py-2.5 bg-light rounded-full border border-primary/10 text-dark text-sm focus:border-primary focus:ring-1 focus:ring-primary/20 focus:outline-none transition-all w-64 placeholder:text-muted"
                                 />
                             </div>
                         </div>

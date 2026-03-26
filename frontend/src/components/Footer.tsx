@@ -3,13 +3,13 @@ import { Instagram, MapPin, Phone, Mail } from 'lucide-react';
 
 const Footer = () => {
     return (
-        <footer className="bg-secondary/10 text-dark pt-24 pb-10 border-t border-primary/5">
+        <footer className="bg-surface text-dark pt-24 pb-10 border-t border-primary/10">
             <div className="max-w-7xl mx-auto px-6 lg:px-12">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-12 mb-20">
                     {/* Brand Section */}
                     <div className="lg:col-span-4 flex flex-col gap-8 text-center md:text-left">
                         <Link to="/" className="flex items-center md:items-start flex-col gap-4 hover:opacity-80 transition-opacity mx-auto md:mx-0 w-fit">
-                            <div className="w-16 h-16 rounded-full overflow-hidden border border-primary/20 shadow-sm bg-white">
+                            <div className="w-16 h-16 rounded-full overflow-hidden border border-primary/20 shadow-sm bg-light">
                                 <img 
                                     src="/izza_image.jpeg" 
                                     alt="Izza Collections" 
@@ -27,7 +27,7 @@ const Footer = () => {
                         </p>
 
                         <div className="flex items-center justify-center md:justify-start gap-4">
-                            <a href="#" className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all duration-300 shadow-sm">
+                            <a href="#" className="w-10 h-10 rounded-full bg-light flex items-center justify-center text-primary hover:bg-primary hover:text-dark transition-all duration-300 shadow-sm">
                                 <Instagram className="w-4 h-4" />
                             </a>
                            <a href='#' className="text-xs font-bold text-dark/70 hover:text-primary transition-colors tracking-widest uppercase">Izza_Collections</a>
