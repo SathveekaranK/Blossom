@@ -5,10 +5,7 @@
 export const resolveImageUrl = (imageUrl: string | undefined | null, productName?: string): string => {
     // Array of high-quality hair accessory images for fallback/sanitization
     const accessoryImages = [
-        '/hair-clip.png',
-        '/scrunchie.png',
-        '/hair-pin.png',
-        '/hair-band.png'
+        '/hair-clip.png'
     ];
 
     // Simple deterministic hash function to pick a consistent image based on product name
@@ -20,15 +17,8 @@ export const resolveImageUrl = (imageUrl: string | undefined | null, productName
         return Math.abs(hash);
     };
 
-    const isSkincare = (path: string | null | undefined, name?: string) => {
-        const lowerPath = path?.toLowerCase() || '';
-        const lowerName = name?.toLowerCase() || '';
-        return lowerPath.includes('skin') || lowerPath.includes('cream') || lowerPath.includes('apothecary') ||
-               lowerName.includes('skin') || lowerName.includes('cream') || lowerName.includes('face');
-    };
-
-    // If no image, or it's a file:// path, or it's skincare data: use a curated accessory image
-    if (!imageUrl || imageUrl.startsWith('file://') || isSkincare(imageUrl, productName)) {
+    // If no image, or it's a file:// path, use a curated accessory image as fallback
+    if (!imageUrl || imageUrl.startsWith('file://')) {
         const index = productName ? (getHash(productName) % accessoryImages.length) : 0;
         return accessoryImages[index];
     }
@@ -39,7 +29,7 @@ export const resolveImageUrl = (imageUrl: string | undefined | null, productName
     }
 
     // Otherwise, assume it's a local path and prepend the backend URL
-    const baseUrl = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:5000';
+    const baseUrl = import.meta.env.VITE_API_BASE_URL.replace('/api', '');
     const cleanPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
     
     return `${baseUrl}${cleanPath}`;

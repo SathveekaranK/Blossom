@@ -2,6 +2,7 @@ import type { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
 import { z } from 'zod';
 import { notifySubscribers } from './subscriptionController.js';
+import { sendLowStockAlert } from '../utils/emailService.js';
 
 const productSchema = z.object({
     name: z.string().min(2),
@@ -20,7 +21,7 @@ export const getProducts = async (req: Request, res: Response) => {
         const { category, search, sort, limit = 10, page = 1, showInactive, maxPrice, minPrice } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
 
-        const where: any = {};
+        const where: any = { isDeleted: false };
         
         // Category filtering
         if (category) where.category = { slug: String(category) };
@@ -72,8 +73,8 @@ export const getProducts = async (req: Request, res: Response) => {
 export const getProductBySlug = async (req: Request, res: Response) => {
     try {
         const slug = req.params.slug as string;
-        const product = await prisma.product.findUnique({
-            where: { slug },
+        const product = await prisma.product.findFirst({
+            where: { slug, isDeleted: false },
             include: { category: true },
         });
         if (!product) return res.status(404).json({ error: 'Product not found' });
@@ -86,8 +87,8 @@ export const getProductBySlug = async (req: Request, res: Response) => {
 export const getProductById = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string;
-        const product = await prisma.product.findUnique({
-            where: { id },
+        const product = await prisma.product.findFirst({
+            where: { id, isDeleted: false },
             include: { category: true },
         });
         if (!product) return res.status(404).json({ error: 'Product not found' });
@@ -111,8 +112,14 @@ export const createProduct = async (req: Request, res: Response) => {
             data: {
                 ...validatedData,
                 imageUrl,
+                lowStockAlertSent: (validatedData.stock < 10),
             },
         });
+
+        // If created with low stock, send alert immediately
+        if (product.stock < 10) {
+            await sendLowStockAlert(product);
+        }
 
         // Notify all subscribers about the new product
         await notifySubscribers({
@@ -148,8 +155,20 @@ export const updateProduct = async (req: Request, res: Response) => {
             data: {
                 ...validatedData,
                 imageUrl: imageUrl ?? undefined,
+                // Reset alert if stock is now >= 10, or set it if it's now < 10
+                lowStockAlertSent: validatedData.stock < 10 ? undefined : false,
             },
         });
+
+        // If stock was updated to be low and alert wasn't sent yet
+        if (product.stock < 10 && !product.lowStockAlertSent) {
+            await sendLowStockAlert(product);
+            await prisma.product.update({
+                where: { id: product.id },
+                data: { lowStockAlertSent: true }
+            });
+        }
+
         res.json(product);
     } catch (error) {
         if (error instanceof z.ZodError) {
@@ -163,9 +182,24 @@ export const updateProduct = async (req: Request, res: Response) => {
 export const deleteProduct = async (req: Request, res: Response) => {
     try {
         const id = req.params.id as string;
-        await prisma.product.delete({ where: { id } });
+        console.log('--- PRODUCT DELETE REQUESTED ---');
+        console.log('Product ID:', id);
+
+        // Perform HARD DELETE
+        const deletedProduct = await prisma.product.delete({
+            where: { id }
+        });
+
+        console.log('API RESPONSE: Success - Product deleted from database');
         res.status(204).send();
-    } catch (error) {
+    } catch (error: any) {
+        console.error('Delete Product Error:', error);
+        
+        // Handle "Record not found" error (Prisma P2025)
+        if (error.code === 'P2025') {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        
         res.status(500).json({ error: 'Failed to delete product' });
     }
 };

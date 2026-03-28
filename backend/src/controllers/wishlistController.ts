@@ -13,12 +13,11 @@ export const toggleWishlist = async (req: any, res: Response) => {
         }
 
         // Check if item already exists
-        const existing = await prisma.wishlist.findUnique({
+        const existing = await prisma.wishlist.findFirst({
             where: {
-                userId_productId: {
-                    userId,
-                    productId
-                }
+                userId,
+                productId,
+                product: { isDeleted: false }
             }
         });
 
@@ -49,7 +48,10 @@ export const getWishlist = async (req: any, res: Response) => {
         const userId = req.user.userId;
 
         const wishlist = await prisma.wishlist.findMany({
-            where: { userId },
+            where: { 
+                userId,
+                product: { isDeleted: false }
+            },
             include: {
                 product: {
                     include: {

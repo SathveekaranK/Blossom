@@ -37,22 +37,25 @@ model Category {
 }
 
 model Product {
-  id          String      @id @default(uuid())
-  name        String
-  description String
-  price       Float       @default(0.0)
-  stock       Int         @default(0)
-  slug        String      @unique
-  imageUrl    String?
-  rating      Float       @default(0.0)
-  isActive    Boolean     @default(true)
-  category    Category    @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  cartItems   CartItem[]
-  orderItems  OrderItem[]
-  wishlist    Wishlist[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id                String      @id @default(uuid())
+  name              String
+  description       String
+  price             Float       @default(0.0)
+  stock             Int         @default(0)
+  slug              String      @unique
+  imageUrl          String?
+  rating            Float       @default(0.0)
+  isActive          Boolean     @default(true)
+  lowStockAlertSent Boolean     @default(false)
+  isDeleted         Boolean     @default(false)
+  category          Category    @relation(fields: [categoryId], references: [id])
+  categoryId        String
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  wishlist          Wishlist[]
+  notifications     Notification[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 }
 
 model Cart {
@@ -68,7 +71,7 @@ model CartItem {
   id        String   @id @default(uuid())
   cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   cartId    String
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
   quantity  Int      @default(1)
   createdAt DateTime @default(now())
@@ -100,7 +103,7 @@ model OrderItem {
   id        String   @id @default(uuid())
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId   String
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
   productId String
   quantity  Int
   price     Float
@@ -117,6 +120,7 @@ model Notification {
   type      String   @default("PRODUCT_NEW")
   isRead    Boolean  @default(false)
   productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
 }
 
@@ -127,7 +131,7 @@ model Wishlist {
   productId String
 
   user      User     @relation(fields: [userId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }

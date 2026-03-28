@@ -99,10 +99,10 @@ const ProductCard = ({ product, addItem }: { product: any, addItem: any }) => {
 };
 
 const FIXED_CATEGORIES = [
-    { id: 'fixed-1', name: 'Ornate Clips', imageUrl: '/hair-clip.png', slug: 'hair-clips' },
-    { id: 'fixed-2', name: 'Silk Scrunchies', imageUrl: '/scrunchie.png', slug: 'scrunchies' },
-    { id: 'fixed-3', name: 'Pearl Pins', imageUrl: '/hair-pin.png', slug: 'hair-pins' },
-    { id: 'fixed-4', name: 'Aesthetic Bands', imageUrl: '/hair-band.png', slug: 'hair-bands' },
+    { id: 'fixed-1', name: 'Ornate Clips', imageUrl: 'public/hair-clip.png', slug: 'hair-clips' },
+    { id: 'fixed-2', name: 'Silk Scrunchies', imageUrl: 'https://izza-collections.s3.eu-north-1.amazonaws.com/products/image-1774378875321-123456789.webp', slug: 'scrunchies' },
+    { id: 'fixed-3', name: 'Pearl Pins', imageUrl: 'https://izza-collections.s3.eu-north-1.amazonaws.com/products/image-1774382075354-109741661.webp', slug: 'hair-pins' },
+    { id: 'fixed-4', name: 'Aesthetic Bands', imageUrl: 'public/hair-clip.png', slug: 'hair-bands' },
 ];
 
 const Home = () => {
@@ -176,7 +176,7 @@ const Home = () => {
                         <div className="flex flex-col items-center mt-12">
                             <TextReveal 
                                 text="IZZA" 
-                                className="text-[20vw] md:text-[16vw] lg:text-[14rem] font-heading font-medium leading-[0.7] text-dark tracking-[-0.04em]" 
+                                className="text-[20vw] md:text-[16vw] lg:text-[14rem] font-heading font-medium leading-[0.7] text-dark tracking-[-0.04em] mt-12 pt-12" 
                             />
                             <motion.span
                                 initial={{ opacity: 0, scale: 0.8 }}
@@ -379,7 +379,7 @@ const Home = () => {
                                     to={`/shop?category=${cat.slug}`}
                                     className="group relative aspect-[4/5] block rounded-[60px] overflow-hidden transition-all duration-1000 border border-primary/5 shadow-sm"
                                 >
-                                    <img src={cat.imageUrl} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2.5s] group-hover:scale-110" />
+                                    <img src={resolveImageUrl(cat.imageUrl, cat.name)} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2.5s] group-hover:scale-110" />
                                     <div className="absolute inset-0 bg-gradient-to-b from-transparent via-primary/5 to-primary/40 group-hover:to-primary/60 transition-all duration-1000" />
                                     
                                     <div className="absolute inset-0 p-12 flex flex-col justify-end gap-3 text-center items-center">

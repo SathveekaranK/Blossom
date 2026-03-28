@@ -81,15 +81,6 @@ export const SkeletonLoader = () => {
 // ═══ Global Product Sanitizer ═══
 export const sanitizeProductName = (name: string | undefined): string => {
     if (!name) return "Aesthetic Adornment";
-    const lower = name.toLowerCase();
-    
-    // Legacy Skincare -> Hair Accessory Mapping
-    if (lower.includes('cream') || lower.includes('face')) return "Silk Ribbon Adornment";
-    if (lower.includes('soap')) return "Pearl Hair Pin";
-    if (lower.includes('brush') || lower.includes('towel')) return "Velvet Bow Clip";
-    if (lower.includes('skin')) return "Artisan Hair Band";
-    if (lower.includes('apothecary')) return "Vintage Gold Clip";
-    
     return name;
 };
 
