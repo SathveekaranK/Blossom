@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express';
 import { prisma } from '../config/db.js';
 import Stripe from 'stripe';
+import { sendOrderAdminNotification, sendLowStockAlert } from '../utils/emailService.js';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_placeholder', {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
     apiVersion: '2025-04-30.basil' as any,
 });
 
@@ -151,8 +152,8 @@ export const createCheckoutSession = async (req: any, res: Response) => {
         const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
 
         for (const item of items) {
-            const product = await prisma.product.findUnique({
-                where: { id: item.productId },
+            const product = await prisma.product.findFirst({
+                where: { id: item.productId, isDeleted: false },
             });
 
             if (!product || !product.isActive) {
@@ -210,18 +211,40 @@ export const createCheckoutSession = async (req: any, res: Response) => {
         if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_placeholder') {
             // Simulate payment: keep order as ORDER
 
-            // Deduct stock
+            // Deduct stock and check for low stock
             for (const item of orderItems) {
-                await prisma.product.update({
+                const product = await prisma.product.update({
                     where: { id: item.productId },
                     data: { stock: { decrement: item.quantity } },
                 });
+
+                // Low stock check
+                if (product.stock < 10 && !product.lowStockAlertSent) {
+                    await sendLowStockAlert(product);
+                    await prisma.product.update({
+                        where: { id: product.id },
+                        data: { lowStockAlertSent: true }
+                    });
+                }
             }
 
             // Clear user cart
             const cart = await prisma.cart.findUnique({ where: { userId } });
             if (cart) {
                 await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+            }
+
+            // Send admin notification
+            const fullOrder = await prisma.order.findUnique({
+                where: { id: order.id },
+                include: {
+                    user: { select: { name: true, email: true, phone: true } },
+                    items: { include: { product: true } },
+                },
+            });
+            if (fullOrder) {
+                // @ts-ignore - type conversion
+                await sendOrderAdminNotification(fullOrder);
             }
 
             return res.json({
@@ -237,8 +260,8 @@ export const createCheckoutSession = async (req: any, res: Response) => {
             payment_method_types: ['card'],
             line_items: lineItems,
             mode: 'payment',
-            success_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/success?orderId=${order.id}`,
-            cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:5173'}/checkout/cancel?orderId=${order.id}`,
+            success_url: `${process.env.FRONTEND_URL}/checkout/success?orderId=${order.id}`,
+            cancel_url: `${process.env.FRONTEND_URL}/checkout/cancel?orderId=${order.id}`,
             metadata: {
                 orderId: order.id,
             },
@@ -283,19 +306,41 @@ export const stripeWebhook = async (req: Request, res: Response) => {
             // Prevent duplicate processing
             const order = await prisma.order.findUnique({ where: { id: orderId } });
             if (order && order.status === 'ORDER') {
-                // Deduct stock
+                // Deduct stock and check for low stock
                 const items = await prisma.orderItem.findMany({ where: { orderId } });
                 for (const item of items) {
-                    await prisma.product.update({
+                    const product = await prisma.product.update({
                         where: { id: item.productId },
                         data: { stock: { decrement: item.quantity } },
                     });
+
+                    // Low stock check
+                    if (product.stock < 10 && !product.lowStockAlertSent) {
+                        await sendLowStockAlert(product);
+                        await prisma.product.update({
+                            where: { id: product.id },
+                            data: { lowStockAlertSent: true }
+                        });
+                    }
                 }
 
                 // Clear user cart
                 const cart = await prisma.cart.findUnique({ where: { userId: order.userId } });
                 if (cart) {
                     await prisma.cartItem.deleteMany({ where: { cartId: cart.id } });
+                }
+
+                // Send admin notification
+                const fullOrder = await prisma.order.findUnique({
+                    where: { id: orderId },
+                    include: {
+                        user: { select: { name: true, email: true, phone: true } },
+                        items: { include: { product: true } },
+                    },
+                });
+                if (fullOrder) {
+                    // @ts-ignore - type conversion
+                    await sendOrderAdminNotification(fullOrder);
                 }
             }
         }
@@ -313,7 +358,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         const totalOrders = await prisma.order.count();
         const activeUsers = await prisma.user.count();
-        const activeProducts = await prisma.product.count({ where: { isActive: true } });
+        const activeProducts = await prisma.product.count({ where: { isActive: true, isDeleted: false } });
         const subscriberCount = await prisma.user.count({ where: { isSubscribed: true } });
 
         const recentOrders = await prisma.order.findMany({

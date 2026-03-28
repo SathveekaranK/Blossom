@@ -163,11 +163,18 @@ const ProductsAdmin = () => {
 
     const handleDelete = async (id: string) => {
         if (!window.confirm('Are you sure you want to delete this product?')) return;
+        
+        console.log('--- FRONTEND: DELETE REQUESTED ---');
+        console.log('Target Product ID:', id);
+
         try {
-            await api.delete(`/products/${id}`);
+            const res = await api.delete(`/products/${id}`);
+            console.log('API RESPONSE:', res.status, 'Success');
             fetchData();
-        } catch (err) {
-            alert('Delete failed');
+        } catch (err: any) {
+            console.error('DELETE FAILED:', err);
+            const errorMsg = err.response?.data?.error || 'Delete failed';
+            alert(errorMsg);
         }
     };
 

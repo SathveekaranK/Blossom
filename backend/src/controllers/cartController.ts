@@ -9,6 +9,7 @@ export const getCart = async (req: any, res: Response) => {
             where: { userId },
             include: {
                 items: {
+                    where: { product: { isDeleted: false } },
                     include: { product: { include: { category: true } } },
                 },
             },
@@ -19,6 +20,7 @@ export const getCart = async (req: any, res: Response) => {
                 data: { userId },
                 include: {
                     items: {
+                        where: { product: { isDeleted: false } },
                         include: { product: { include: { category: true } } },
                     },
                 },
@@ -46,8 +48,8 @@ export const syncCart = async (req: any, res: Response) => {
         // For each local item, upsert into DB cart
         for (const item of items) {
             // Validate product exists and has stock
-            const product = await prisma.product.findUnique({
-                where: { id: item.productId },
+            const product = await prisma.product.findFirst({
+                where: { id: item.productId, isDeleted: false },
             });
             if (!product || !product.isActive) continue;
 
@@ -83,6 +85,7 @@ export const syncCart = async (req: any, res: Response) => {
             where: { userId },
             include: {
                 items: {
+                    where: { product: { isDeleted: false } },
                     include: { product: { include: { category: true } } },
                 },
             },
@@ -100,7 +103,9 @@ export const addToCart = async (req: any, res: Response) => {
         const userId = req.user.userId;
         const { productId, quantity = 1 } = req.body;
 
-        const product = await prisma.product.findUnique({ where: { id: productId } });
+        const product = await prisma.product.findFirst({ 
+            where: { id: productId, isDeleted: false } 
+        });
         if (!product || !product.isActive) {
             return res.status(400).json({ error: 'Product not available' });
         }
@@ -134,6 +139,7 @@ export const addToCart = async (req: any, res: Response) => {
             where: { userId },
             include: {
                 items: {
+                    where: { product: { isDeleted: false } },
                     include: { product: { include: { category: true } } },
                 },
             },

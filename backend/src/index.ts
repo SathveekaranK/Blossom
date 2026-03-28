@@ -25,7 +25,7 @@ const PORT = process.env.PORT || 5000;
 
 await connectDB();
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://localhost:5174'], credentials: true }));
+app.use(cors({ origin: process.env.FRONTEND_URL , credentials: true }));
 
 // Webhook must come before express.json()
 app.post('/api/orders/webhook', express.raw({ type: 'application/json' }), stripeWebhookRoute);

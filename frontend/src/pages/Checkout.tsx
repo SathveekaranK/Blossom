@@ -420,9 +420,9 @@ const Checkout = () => {
                                         />
                                     </div>
                                     <div className="flex flex-col gap-2">
-                                        <label className="text-xs font-semibold text-dark ml-1">House / Flat No. <span className="text-red-500">*</span></label>
+                                        <label className="text-xs font-semibold text-dark ml-1">House / Flat No. </label>
                                         <input
-                                            type="text" required
+                                            type="text" 
                                             value={formData.houseNo}
                                             onChange={(e) => setFormData({ ...formData, houseNo: e.target.value })}
                                             className="input-field"

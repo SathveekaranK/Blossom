@@ -30,7 +30,8 @@ const Footer = () => {
                             <a href="#" className="w-10 h-10 rounded-full bg-light flex items-center justify-center text-primary hover:bg-primary hover:text-dark transition-all duration-300 shadow-sm">
                                 <Instagram className="w-4 h-4" />
                             </a>
-                           <a href='#' className="text-xs font-bold text-dark/70 hover:text-primary transition-colors tracking-widest uppercase">Izza_Collections</a>
+                           <a href='https://www.instagram.com/izza_collections2129?utm_source=qr&igsh=MW5jbTdya2FiY2dpYg%3D%3D' className="text-xs font-bold text-dark/70 hover:text-primary transition-colors tracking-widest uppercase">izza_collections2129
+</a>
                         </div>
                     </div>
 
@@ -72,7 +73,7 @@ const Footer = () => {
                             </div>
                             <div className="flex items-center gap-4">
                                 <Mail className="w-5 h-5 shrink-0 text-primary/40" />
-                                <span>hello@izzacollections.com</span>
+                                <span>izzacollections2129@gmail.com</span>
                             </div>
                         </div>
                     </div>
